@@ -1,4 +1,5 @@
 // 03 · Início (trilha) — canvas artboard Home.dc.html
+import { router } from 'expo-router';
 import { useEffect, type ReactNode } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View, type ViewStyle } from 'react-native';
 import Animated, {
@@ -109,16 +110,16 @@ export default function Inicio() {
 
           <Tag label="Hoje" style={at(20, 302)} bg={colors.redSoft} color={colors.redText} />
 
-          <Node size={64} shadow={5} style={at(118, 284)} label="Missão 1, concluída">
+          <Node size={64} shadow={5} style={at(118, 284)} label="Missão 1, concluída" onPress={() => router.push({ pathname: '/missao/fim', params: { id: '1' } })}>
             <CheckIcon size={30} strokeWidth={3.2} color={colors.white} />
           </Node>
-          <Node size={64} shadow={5} style={at(190, 356)} label="Missão 2, concluída">
+          <Node size={64} shadow={5} style={at(190, 356)} label="Missão 2, concluída" onPress={() => router.push({ pathname: '/missao/fim', params: { id: '2' } })}>
             <CheckIcon size={30} strokeWidth={3.2} color={colors.white} />
           </Node>
 
           <Ring t={ring1} style={at(106, 426)} />
           <Ring t={ring2} style={at(106, 426)} />
-          <Node size={80} shadow={6} style={at(110, 430)} label="Missão 3, começar agora">
+          <Node size={80} shadow={6} style={at(110, 430)} label="Missão 3, começar agora" onPress={() => router.push(`/missao/${p.missaoAtual}`)}>
             <StarIcon size={38} color={colors.white} />
           </Node>
 
@@ -154,11 +155,26 @@ function Tag({ label, style, bg, color }: { label: string; style: ViewStyle; bg:
 }
 
 /** Bolha vermelha da trilha: sombra sólida de 5px (6px na atual); ao tocar, afunda 5px e a sombra some. */
-function Node({ size, shadow, style, label, children }: { size: number; shadow: number; style: ViewStyle; label: string; children: ReactNode }) {
+function Node({
+  size,
+  shadow,
+  style,
+  label,
+  onPress,
+  children,
+}: {
+  size: number;
+  shadow: number;
+  style: ViewStyle;
+  label: string;
+  onPress: () => void;
+  children: ReactNode;
+}) {
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={label}
+      onPress={onPress}
       style={({ pressed }) => [
         styles.node,
         { width: size, height: size, borderRadius: size / 2 },

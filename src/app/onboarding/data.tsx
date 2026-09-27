@@ -1,5 +1,4 @@
 // 02c · Onboarding — Data — canvas artboard Onb3.dc.html
-import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -8,6 +7,7 @@ import { ChevronLeftIcon, ChevronRightIcon, FireIcon } from '@/components/icons'
 import { OnboardingHeader } from '@/components/onboarding/OnboardingHeader';
 import { Rugi } from '@/components/Rugi';
 import { TapScale } from '@/components/TapScale';
+import { goHome } from '@/lib/nav';
 import { colors, fonts, radius, sizes, solidShadow, space, type } from '@/theme';
 
 const WEEKDAYS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
@@ -77,8 +77,7 @@ export default function OnboardingData() {
   };
 
   const finish = () => {
-    if (router.canDismiss()) router.dismissAll();
-    router.replace('/(tabs)');
+    goHome();
   };
 
   return (

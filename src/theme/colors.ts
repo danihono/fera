@@ -10,6 +10,12 @@ export const colors = {
   redHighlight: '#FF6F68', // brilho interno da barra de progresso
   redStripe: '#D72A23', // listras decorativas sobre o vermelho
   redShadow: '#8E1510', // sombra do Rugi no splash
+  redBlush: '#FFB3AD', // confete e piscar da lacuna vazia
+  glowRed: '#F2554E', // brilho atrás do Rugi em chamas (Véspera)
+  rays: '#FFF1EF', // raios girando atrás do Rugi (Fim)
+  redShine: '#FF8A84', // brilho que passa na barra de progresso (Gerando)
+  bookInk: '#8E1A14', // contorno do caderno (Gerando)
+  bookLine: '#F0B9B3', // linhas do caderno (Gerando)
   trailDone: '#FFD2CD', // trecho concluído da trilha (Início)
   progressShade: '#FFD6D1', // sombra interna do preenchimento branco da barra no card vermelho
 
@@ -17,6 +23,7 @@ export const colors = {
   fireTop: '#FF6B1A',
   fireBottom: '#E8322B',
   fireCore: '#FFD9C2',
+  fireCoreWarm: '#FFB28A', // miolo da chama branca sobre o gradiente (Fim)
 
   // Acerto
   success: '#2BB673',
@@ -38,6 +45,8 @@ export const colors = {
   border: '#F0E6E4', // bordas 2px, trilho, divisórias
   locked: '#E3D6D3', // sombra de itens futuros
   lockedIcon: '#B5AAA8',
+  lockedFill: '#C9BEBC', // ícones preenchidos de conquistas bloqueadas
+  axis: '#D9CCC9', // eixos de gráfico, fumaça e chama apagada
   text: '#2A1F1F', // nunca preto puro
   textMuted: '#756A69', // texto secundário (ajuste AA)
   iconMuted: '#8A7F7E', // ícones inativos, fechar

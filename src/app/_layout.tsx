@@ -44,6 +44,12 @@ export default function RootLayout() {
         <Stack.Screen name="onboarding/data" />
         <Stack.Screen name="(tabs)" options={{ animation: 'fade' }} />
         <Stack.Screen name="prova/nova" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="prova/gerando" options={{ animation: 'fade', gestureEnabled: false }} />
+        <Stack.Screen name="missao/[id]" options={{ gestureEnabled: false }} />
+        <Stack.Screen name="missao/fim" options={{ animation: 'fade', gestureEnabled: false }} />
+        <Stack.Screen name="streak" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="vespera/[provaId]" options={{ animation: 'fade' }} />
+        <Stack.Screen name="premium" options={{ presentation: 'modal' }} />
       </Stack>
     </SafeAreaProvider>
   );

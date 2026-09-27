@@ -26,19 +26,23 @@ App de estudos gamificado (iOS + Android) com o mascote Rugi. Expo SDK 57, TypeS
 | Onb2 (02b Matéria) | `src/app/onboarding/materia.tsx` ✅ |
 | Onb3 (02c Data) | `src/app/onboarding/data.tsx` ✅ |
 | Home (03 Início) | `src/app/(tabs)/index.tsx` ✅ |
-| NovaProva (04) | `src/app/prova/nova.tsx` |
-| Gerando (05) | `src/app/prova/gerando.tsx` |
-| Quiz, Lacuna, VF (06a–c) | `src/app/missao/[id].tsx` + componentes por formato |
-| Acerto, Erro (07a–b) | `FeedbackSheet` dentro da missão |
-| Fim (08) | `src/app/missao/fim.tsx` |
-| Streak (09) | `src/app/streak.tsx` (modal) |
-| Turma (10) | `src/app/(tabs)/turma.tsx` |
-| Vespera (11) | `src/app/vespera/[provaId].tsx` |
-| Perfil (12) | `src/app/(tabs)/perfil.tsx` |
-| Premium (13 Fera+) | `src/app/premium.tsx` |
+| NovaProva (04) | `src/app/prova/nova.tsx` ✅ |
+| Gerando (05) | `src/app/prova/gerando.tsx` ✅ |
+| Quiz, Lacuna, VF (06a–c) | `src/app/missao/[id].tsx` + `src/components/missao/` ✅ |
+| Acerto, Erro (07a–b) | `src/components/missao/FeedbackSheet.tsx` ✅ |
+| Fim (08) | `src/app/missao/fim.tsx` ✅ |
+| Streak (09) | `src/app/streak.tsx` (modal) ✅ |
+| Turma (10) | `src/app/(tabs)/turma.tsx` ✅ |
+| Vespera (11) | `src/app/vespera/[provaId].tsx` ✅ |
+| Perfil (12) | `src/app/(tabs)/perfil.tsx` ✅ |
+| Premium (13 Fera+) | `src/app/premium.tsx` ✅ |
 | TabBar | `src/components/TabBar.tsx` ✅ |
 
 A aba Provas ainda não tem design.
+
+Dados de exemplo (iguais aos do design) ficam em `src/data/` até o Firebase entrar. Animações em loop usam `useLoop` / `kf` / `pingPong` de `src/lib/anim.ts`; curvas de easing ficam fora do componente (se mudarem de identidade a cada render, a animação reinicia).
+
+Medidas de elementos com `border` e `height` **sem** `box-sizing: border-box` no `.dc.html` somam a borda à altura (ex.: pílula 64 + 2 × 2 = 68). Botões (`<button>`) já são border-box.
 
 ## Como conferir se ficou igual
 

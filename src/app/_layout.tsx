@@ -40,6 +40,8 @@ export default function RootLayout() {
       <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.white } }}>
         <Stack.Screen name="index" options={{ animation: 'none' }} />
         <Stack.Screen name="onboarding/index" options={{ animation: 'fade' }} />
+        <Stack.Screen name="onboarding/materia" />
+        <Stack.Screen name="onboarding/data" />
         <Stack.Screen name="(tabs)" options={{ animation: 'fade' }} />
         <Stack.Screen name="prova/nova" options={{ presentation: 'modal' }} />
       </Stack>

@@ -25,6 +25,8 @@ export const sizes = {
   shadow: 4,
   // Distância do topo da tela até o conteúdo, além do safe area (58 no design = 47 + 11)
   topExtra: 11,
+  // Distância do conteúdo até o fim da tela, além do safe area (40 no design = 34 da home indicator + 6)
+  bottomExtra: 6,
 } as const;
 
 /** Sombra sólida, sem blur, como no design: `0 4px 0 <cor>`. */

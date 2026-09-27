@@ -79,7 +79,7 @@ export default function OnboardingRugi() {
 
       <View style={styles.bottom}>
         <Text style={styles.copy}>Você manda o conteúdo da prova. Eu transformo em missões de 5 minutos.</Text>
-        <FeraButton label="Bora!" onPress={() => router.replace('/(tabs)')} />
+        <FeraButton label="Bora!" onPress={() => router.push('/onboarding/materia')} />
         <Pressable accessibilityRole="link" onPress={() => router.replace('/(tabs)')} style={styles.secondaryLink}>
           <Text style={styles.secondaryLinkText}>Já tenho conta</Text>
         </Pressable>

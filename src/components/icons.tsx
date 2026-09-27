@@ -1,5 +1,5 @@
 // Ícones copiados 1:1 dos SVGs do canvas (traço 2.5, pontas arredondadas).
-import Svg, { Circle, Defs, LinearGradient, Path, Stop } from 'react-native-svg';
+import Svg, { Circle, Defs, Ellipse, G, LinearGradient, Path, Stop } from 'react-native-svg';
 import { colors } from '@/theme';
 
 type TabIconProps = { active: boolean; size?: number };
@@ -67,7 +67,8 @@ export function PawPlusIcon({ size = 34 }: { size?: number }) {
   );
 }
 
-export function FireIcon({ size = 24 }: { size?: number }) {
+/** `core={false}` é a chama sem o miolo claro (lembrete de dias do calendário, 02c). */
+export function FireIcon({ size = 24, core = true }: { size?: number; core?: boolean }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24">
       <Defs>
@@ -77,7 +78,7 @@ export function FireIcon({ size = 24 }: { size?: number }) {
         </LinearGradient>
       </Defs>
       <Path d="M12 2.5c.8 3 3.8 4.8 5.2 8 1.6 3.8-.6 9-5.2 9s-6.8-4-5.6-7.6c.5-1.6 1.6-2.6 2.6-3.2 0 1.6.8 2.6 1.8 2.8C10.2 9.2 10.4 5.6 12 2.5z" fill="url(#fire)" />
-      <Path d="M12 12.6c1.3 1.3 2.5 2.5 2.1 4.3-.3 1.3-1.2 2-2.1 2s-1.9-.7-2.1-2c-.2-1.6.9-2.9 2.1-4.3z" fill={colors.fireCore} />
+      {core && <Path d="M12 12.6c1.3 1.3 2.5 2.5 2.1 4.3-.3 1.3-1.2 2-2.1 2s-1.9-.7-2.1-2c-.2-1.6.9-2.9 2.1-4.3z" fill={colors.fireCore} />}
     </Svg>
   );
 }
@@ -97,4 +98,103 @@ export function HeartIcon({ size = 22 }: { size?: number }) {
       <Path d="M7.5 9.2a2 2 0 0 1 2-1.9" stroke={colors.white} strokeWidth={1.8} strokeLinecap="round" fill="none" opacity={0.7} />
     </Svg>
   );
+}
+
+type StrokeIconProps = { size?: number; color?: string };
+
+export function ChevronLeftIcon({ size = 22, color = colors.text }: StrokeIconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+      <Path d="M15 5l-7 7 7 7" />
+    </Svg>
+  );
+}
+
+export function ChevronRightIcon({ size = 22, color = colors.text }: StrokeIconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+      <Path d="M9 5l7 7-7 7" />
+    </Svg>
+  );
+}
+
+export function CheckIcon({ size = 14, color = colors.white }: StrokeIconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={3.5} strokeLinecap="round" strokeLinejoin="round">
+      <Path d="M5 12.5l4.5 4.5L19 7.5" />
+    </Svg>
+  );
+}
+
+export function PlusIcon({ size = 20, color = colors.textMuted }: StrokeIconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2.5} strokeLinecap="round">
+      <Path d="M12 5v14M5 12h14" />
+    </Svg>
+  );
+}
+
+// Matérias (02b). Traço 2.5 (2.2 no átomo), cor vem de fora: vermelho no círculo claro, branco no selecionado.
+export type SubjectId = 'matematica' | 'portugues' | 'historia' | 'geografia' | 'biologia' | 'quimica' | 'fisica' | 'ingles';
+
+export function SubjectIcon({ subject, size = 22, color = colors.red }: StrokeIconProps & { subject: SubjectId }) {
+  const common = { width: size, height: size, viewBox: '0 0 24 24', fill: 'none', stroke: color, strokeLinecap: 'round', strokeLinejoin: 'round' } as const;
+  switch (subject) {
+    case 'matematica':
+      return (
+        <Svg {...common} strokeWidth={2.5} strokeLinejoin={undefined}>
+          <Path d="M7 4v6M4 7h6M14 7h6M4.5 14.5l5 5M9.5 14.5l-5 5M14 15.5h6M14 18.5h6" />
+        </Svg>
+      );
+    case 'portugues':
+      return (
+        <Svg {...common} strokeWidth={2.5}>
+          <Path d="M12 6.5c-2-1.5-5-2-8-1.5v13c3-.5 6 0 8 1.5 2-1.5 5-2 8-1.5V5c-3-.5-6 0-8 1.5zM12 6.5v13" />
+        </Svg>
+      );
+    case 'historia':
+      return (
+        <Svg {...common} strokeWidth={2.5}>
+          <Path d="M6.5 3.5h11M6.5 20.5h11M7.5 3.5c0 5 9 5 9 8.5s-9 3.5-9 8.5M16.5 3.5c0 5-9 5-9 8.5s9 3.5 9 8.5" />
+        </Svg>
+      );
+    case 'geografia':
+      return (
+        <Svg {...common} strokeWidth={2.5}>
+          <Circle cx={12} cy={12} r={8.5} />
+          <Path d="M3.5 12h17M12 3.5c2.5 2.5 3.5 5.5 3.5 8.5s-1 6-3.5 8.5c-2.5-2.5-3.5-5.5-3.5-8.5s1-6 3.5-8.5z" />
+        </Svg>
+      );
+    case 'biologia':
+      return (
+        <Svg {...common} strokeWidth={2.5}>
+          <Path d="M5 19c0-8 5-14 15-14 0 10-6 15-14 15zM5 19l7-7" />
+        </Svg>
+      );
+    case 'quimica':
+      return (
+        <Svg {...common} strokeWidth={2.5}>
+          <Path d="M9.5 3.5h5M10.5 3.5V9L5 18.5a1.5 1.5 0 0 0 1.3 2h11.4a1.5 1.5 0 0 0 1.3-2L13.5 9V3.5M7.5 14.5h9" />
+        </Svg>
+      );
+    case 'fisica':
+      return (
+        <Svg {...common} strokeWidth={2.2} strokeLinejoin={undefined}>
+          <Ellipse cx={12} cy={12} rx={9} ry={3.6} />
+          <G rotation={60} origin="12, 12">
+            <Ellipse cx={12} cy={12} rx={9} ry={3.6} />
+          </G>
+          <G rotation={-60} origin="12, 12">
+            <Ellipse cx={12} cy={12} rx={9} ry={3.6} />
+          </G>
+          <Circle cx={12} cy={12} r={1.2} fill={color} />
+        </Svg>
+      );
+    case 'ingles':
+      return (
+        <Svg {...common} strokeWidth={2.5}>
+          <Path d="M4.5 4.5h15a1 1 0 0 1 1 1v9.5a1 1 0 0 1-1 1h-9L6 19.5V16H4.5a1 1 0 0 1-1-1V5.5a1 1 0 0 1 1-1zM8 9h8M8 12h5" />
+        </Svg>
+      );
+  }
 }

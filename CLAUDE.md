@@ -23,8 +23,8 @@ App de estudos gamificado (iOS + Android) com o mascote Rugi. Expo SDK 57, TypeS
 | --- | --- |
 | Main (01 Splash) | `src/app/index.tsx` ✅ |
 | Onb1 (02a) | `src/app/onboarding/index.tsx` ✅ |
-| Onb2 (02b Matéria) | `src/app/onboarding/materia.tsx` |
-| Onb3 (02c Data) | `src/app/onboarding/data.tsx` |
+| Onb2 (02b Matéria) | `src/app/onboarding/materia.tsx` ✅ |
+| Onb3 (02c Data) | `src/app/onboarding/data.tsx` ✅ |
 | Home (03 Início) | `src/app/(tabs)/index.tsx` |
 | NovaProva (04) | `src/app/prova/nova.tsx` |
 | Gerando (05) | `src/app/prova/gerando.tsx` |

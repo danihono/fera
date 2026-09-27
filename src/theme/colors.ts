@@ -10,6 +10,8 @@ export const colors = {
   redHighlight: '#FF6F68', // brilho interno da barra de progresso
   redStripe: '#D72A23', // listras decorativas sobre o vermelho
   redShadow: '#8E1510', // sombra do Rugi no splash
+  trailDone: '#FFD2CD', // trecho concluído da trilha (Início)
+  progressShade: '#FFD6D1', // sombra interna do preenchimento branco da barra no card vermelho
 
   // Streak / fogo (gradiente de cima pra baixo)
   fireTop: '#FF6B1A',

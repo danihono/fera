@@ -1,5 +1,5 @@
 // Ícones copiados 1:1 dos SVGs do canvas (traço 2.5, pontas arredondadas).
-import Svg, { Circle, Defs, Ellipse, G, LinearGradient, Path, Stop } from 'react-native-svg';
+import Svg, { Circle, Defs, Ellipse, G, LinearGradient, Path, Rect, Stop } from 'react-native-svg';
 import { colors } from '@/theme';
 
 type TabIconProps = { active: boolean; size?: number };
@@ -118,9 +118,9 @@ export function ChevronRightIcon({ size = 22, color = colors.text }: StrokeIconP
   );
 }
 
-export function CheckIcon({ size = 14, color = colors.white }: StrokeIconProps) {
+export function CheckIcon({ size = 14, color = colors.white, strokeWidth = 3.5 }: StrokeIconProps & { strokeWidth?: number }) {
   return (
-    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={3.5} strokeLinecap="round" strokeLinejoin="round">
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round">
       <Path d="M5 12.5l4.5 4.5L19 7.5" />
     </Svg>
   );
@@ -197,4 +197,31 @@ export function SubjectIcon({ subject, size = 22, color = colors.red }: StrokeIc
         </Svg>
       );
   }
+}
+
+// Trilha da Início (03).
+export function StarIcon({ size = 38, color = colors.white }: StrokeIconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24">
+      <Path d="M12 3.2l2.6 5.3 5.8.8-4.2 4.1 1 5.8L12 16.5l-5.2 2.7 1-5.8-4.2-4.1 5.8-.8z" fill={color} stroke={color} strokeWidth={1.6} strokeLinejoin="round" />
+    </Svg>
+  );
+}
+
+export function LockIcon({ size = 26, color = colors.lockedIcon }: StrokeIconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+      <Rect x={5.5} y={10.5} width={13} height={10} rx={2.5} />
+      <Path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5" />
+    </Svg>
+  );
+}
+
+export function TrophyIcon({ size = 36, color = colors.red }: StrokeIconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2.3} strokeLinecap="round" strokeLinejoin="round">
+      <Path d="M7.5 4h9v5a4.5 4.5 0 0 1-9 0z" fill={colors.redSoft} />
+      <Path d="M7.5 5.5H5a2.5 2.5 0 0 0 2.8 3.4M16.5 5.5H19a2.5 2.5 0 0 1-2.8 3.4M12 13.5v3.5M8.5 20h7M9.5 20l.5-3h4l.5 3" />
+    </Svg>
+  );
 }

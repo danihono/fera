@@ -1,31 +1,51 @@
 // 02b · Onboarding — Matéria — canvas artboard Onb2.dc.html
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FeraButton } from '@/components/FeraButton';
 import { CheckIcon, PlusIcon, SubjectIcon, type SubjectId } from '@/components/icons';
 import { OnboardingHeader } from '@/components/onboarding/OnboardingHeader';
+import { OtherSubjectSheet } from '@/components/onboarding/OtherSubjectSheet';
 import { Rugi } from '@/components/Rugi';
 import { TapScale } from '@/components/TapScale';
 import { colors, fonts, radius, sizes, space, type } from '@/theme';
 
-const SUBJECTS: { id: SubjectId; label: string }[] = [
-  { id: 'matematica', label: 'Matemática' },
-  { id: 'portugues', label: 'Português' },
-  { id: 'historia', label: 'História' },
-  { id: 'geografia', label: 'Geografia' },
-  { id: 'biologia', label: 'Biologia' },
-  { id: 'quimica', label: 'Química' },
-  { id: 'fisica', label: 'Física' },
-  { id: 'ingles', label: 'Inglês' },
+type Subject = { id: string; label: string; icon: SubjectId };
+
+const SUBJECTS: Subject[] = [
+  { id: 'matematica', label: 'Matemática', icon: 'matematica' },
+  { id: 'portugues', label: 'Português', icon: 'portugues' },
+  { id: 'historia', label: 'História', icon: 'historia' },
+  { id: 'geografia', label: 'Geografia', icon: 'geografia' },
+  { id: 'biologia', label: 'Biologia', icon: 'biologia' },
+  { id: 'quimica', label: 'Química', icon: 'quimica' },
+  { id: 'fisica', label: 'Física', icon: 'fisica' },
+  { id: 'ingles', label: 'Inglês', icon: 'ingles' },
 ];
-// Grade de 2 colunas.
-const ROWS = [0, 2, 4, 6].map((i) => SUBJECTS.slice(i, i + 2));
+
+const normalize = (s: string) => s.trim().toLocaleLowerCase('pt-BR');
 
 export default function OnboardingMateria() {
   const insets = useSafeAreaInsets();
-  const [selected, setSelected] = useState<SubjectId>('matematica');
+  const [subjects, setSubjects] = useState(SUBJECTS);
+  const [selected, setSelected] = useState('matematica');
+  const [sheetOpen, setSheetOpen] = useState(false);
+
+  // Grade de 2 colunas.
+  const rows = Array.from({ length: Math.ceil(subjects.length / 2) }, (_, r) => subjects.slice(r * 2, r * 2 + 2));
+
+  // Matéria digitada vira um chip novo (ícone de livro) e fica selecionada; se já existir, só seleciona.
+  const addSubject = (name: string) => {
+    const existing = subjects.find((s) => normalize(s.label) === normalize(name));
+    if (existing) {
+      setSelected(existing.id);
+      return;
+    }
+    const id = `outra-${normalize(name)}`;
+    setSubjects((list) => [...list, { id, label: name, icon: 'portugues' }]);
+    setSelected(id);
+  };
 
   return (
     <View
@@ -40,58 +60,67 @@ export default function OnboardingMateria() {
     >
       <OnboardingHeader step={2} />
 
-      <View style={styles.header}>
-        <View style={styles.headerText}>
-          <Text style={styles.title}>{'Qual sua\npróxima prova?'}</Text>
-          <Text style={styles.subtitle}>Dá pra adicionar outras depois.</Text>
-        </View>
-        <Rugi mood="pensativo" width={96} accessibilityLabel="Rugi pensando" />
-      </View>
-
-      <View style={styles.grid}>
-        {ROWS.map((row, r) => (
-          <View key={r} style={styles.gridRow}>
-            {row.map(({ id, label }) => {
-              const on = id === selected;
-              return (
-                <TapScale
-                  key={id}
-                  scale={0.96}
-                  accessibilityRole="button"
-                  accessibilityState={{ selected: on }}
-                  onPress={() => setSelected(id)}
-                  style={[styles.chip, on && styles.chipOn]}
-                >
-                  <View style={[styles.chipIcon, on && { backgroundColor: colors.red }]}>
-                    <SubjectIcon subject={id} size={22} color={on ? colors.white : colors.red} />
-                  </View>
-                  <Text style={styles.chipLabel}>{label}</Text>
-                  {on && (
-                    <View style={styles.check}>
-                      <CheckIcon size={14} color={colors.white} />
-                    </View>
-                  )}
-                </TapScale>
-              );
-            })}
+      <ScrollView style={styles.body} contentContainerStyle={styles.bodyContent} showsVerticalScrollIndicator={false}>
+        <View style={styles.header}>
+          <View style={styles.headerText}>
+            <Text style={styles.title}>{'Qual sua\npróxima prova?'}</Text>
+            <Text style={styles.subtitle}>Dá pra adicionar outras depois.</Text>
           </View>
-        ))}
-      </View>
+          <Rugi mood="pensativo" width={96} accessibilityLabel="Rugi pensando" />
+        </View>
 
-      <TapScale scale={0.96} accessibilityRole="button" style={styles.other}>
-        <PlusIcon size={20} color={colors.textMuted} />
-        <Text style={styles.otherLabel}>Outra matéria</Text>
-      </TapScale>
+        <View style={styles.grid}>
+          {rows.map((row, r) => (
+            <View key={r} style={styles.gridRow}>
+              {row.map(({ id, label, icon }) => {
+                const on = id === selected;
+                return (
+                  <TapScale
+                    key={id}
+                    scale={0.96}
+                    accessibilityRole="button"
+                    accessibilityState={{ selected: on }}
+                    onPress={() => setSelected(id)}
+                    style={[styles.chip, on && styles.chipOn]}
+                  >
+                    <View style={[styles.chipIcon, on && { backgroundColor: colors.red }]}>
+                      <SubjectIcon subject={icon} size={22} color={on ? colors.white : colors.red} />
+                    </View>
+                    <Text style={styles.chipLabel} numberOfLines={1}>
+                      {label}
+                    </Text>
+                    {on && (
+                      <View style={styles.check}>
+                        <CheckIcon size={14} color={colors.white} />
+                      </View>
+                    )}
+                  </TapScale>
+                );
+              })}
+              {/* Linha ímpar: o espaço vazio mantém o chip na largura de meia coluna. */}
+              {row.length === 1 && <View style={styles.chipSpacer} />}
+            </View>
+          ))}
+        </View>
 
-      <View style={{ flex: 1 }} />
+        <TapScale scale={0.96} accessibilityRole="button" onPress={() => setSheetOpen(true)} style={styles.other}>
+          <PlusIcon size={20} color={colors.textMuted} />
+          <Text style={styles.otherLabel}>Outra matéria</Text>
+        </TapScale>
+      </ScrollView>
 
       <FeraButton label="Continuar" onPress={() => router.push('/onboarding/data')} />
+
+      {sheetOpen && <OtherSubjectSheet onSubmit={addSubject} onClose={() => setSheetOpen(false)} />}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.white, paddingHorizontal: space.gutter },
+  // Rola só se a lista crescer com matérias digitadas; no layout do design cabe tudo.
+  body: { flex: 1, marginHorizontal: -space.gutter },
+  bodyContent: { paddingHorizontal: space.gutter, paddingBottom: space.xl },
   header: { marginTop: 20, flexDirection: 'row', alignItems: 'flex-end', gap: 8 },
   headerText: { flex: 1, gap: 6, paddingBottom: 10 },
   title: { ...type.screenTitle, lineHeight: 31, color: colors.text },
@@ -111,6 +140,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 10,
   },
+  chipSpacer: { flex: 1 },
   chipOn: { borderColor: colors.red, backgroundColor: colors.redSoft },
   chipIcon: {
     width: 40,
@@ -120,7 +150,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  chipLabel: { fontFamily: fonts.nunito800, fontSize: 16, color: colors.text },
+  chipLabel: { flexShrink: 1, fontFamily: fonts.nunito800, fontSize: 16, color: colors.text },
   check: {
     position: 'absolute',
     top: -6,

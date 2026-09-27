@@ -21,9 +21,25 @@ type Quick = { label: string; offset: (today: Date) => number };
 const QUICK: Quick[] = [
   { label: 'Amanhã', offset: () => 1 },
   { label: 'Em 3 dias', offset: () => 3 },
-  // Próxima segunda-feira (nunca hoje).
-  { label: 'Semana que vem', offset: (today) => (8 - today.getDay()) % 7 || 7 },
+  // Segunda da próxima semana; se ela for amanhã (hoje é domingo), a seguinte.
+  {
+    label: 'Semana que vem',
+    offset: (today) => {
+      const toMonday = (8 - today.getDay()) % 7 || 7;
+      return toMonday === 1 ? toMonday + 7 : toMonday;
+    },
+  },
 ];
+
+const DEFAULT_QUICK = 2; // "Semana que vem", como no design
+
+/** Texto da faixa do calendário conforme os dias até a prova (hoje não é selecionável, então ≥ 1). */
+const countdownText = (days: number) =>
+  days === 1
+    ? 'Falta 1 dia. Modo véspera ativado.'
+    : days <= 3
+      ? `Faltam ${days} dias. Bora com foco.`
+      : `Faltam ${days} dias. Dá tempo de sobra.`;
 
 const MINUTES = [
   { min: 5, label: 'Rapidinho' },
@@ -39,16 +55,25 @@ export default function OnboardingData() {
   }, []);
 
   // A semana mostrada começa hoje; o padrão é "Semana que vem", como no design.
-  const [selected, setSelected] = useState(() => addDays(today, QUICK[2].offset(today)));
-  const [week, setWeek] = useState(() => Math.floor(QUICK[2].offset(today) / 7));
+  const [selected, setSelected] = useState(() => addDays(today, QUICK[DEFAULT_QUICK].offset(today)));
+  const [week, setWeek] = useState(() => Math.floor(QUICK[DEFAULT_QUICK].offset(today) / 7));
+  // Só um atalho ativo por vez (o último tocado); escolher um dia no calendário desativa todos.
+  const [quick, setQuick] = useState<number | null>(DEFAULT_QUICK);
   const [minutes, setMinutes] = useState(10);
 
   const days = Array.from({ length: 7 }, (_, i) => addDays(today, week * 7 + i));
   const daysLeft = daysBetween(today, selected);
 
-  const pick = (offset: number) => {
+  const pickQuick = (i: number) => {
+    const offset = QUICK[i].offset(today);
+    setQuick(i);
     setSelected(addDays(today, offset));
     setWeek(Math.floor(offset / 7));
+  };
+
+  const pickDay = (d: Date) => {
+    setQuick(null);
+    setSelected(d);
   };
 
   const finish = () => {
@@ -72,16 +97,15 @@ export default function OnboardingData() {
       <Text style={styles.title}>Quando é?</Text>
 
       <View style={styles.quickRow}>
-        {QUICK.map((q) => {
-          const offset = q.offset(today);
-          const on = offset === daysLeft;
+        {QUICK.map((q, i) => {
+          const on = i === quick;
           return (
             <TapScale
               key={q.label}
               scale={0.95}
               accessibilityRole="button"
               accessibilityState={{ selected: on }}
-              onPress={() => pick(offset)}
+              onPress={() => pickQuick(i)}
               style={[styles.quick, on && styles.quickOn]}
             >
               <Text style={[styles.quickLabel, on && { color: colors.redText }]}>{q.label}</Text>
@@ -121,7 +145,7 @@ export default function OnboardingData() {
                 accessibilityRole="button"
                 accessibilityState={{ selected: on, disabled: isToday }}
                 disabled={isToday}
-                onPress={() => setSelected(d)}
+                onPress={() => pickDay(d)}
                 style={[styles.day, on && styles.dayOn]}
               >
                 <Text style={[styles.dayName, on && { color: colors.white }]}>{WEEKDAYS[d.getDay()]}</Text>
@@ -134,9 +158,7 @@ export default function OnboardingData() {
 
         <View style={styles.countdown}>
           <FireIcon size={18} core={false} />
-          <Text style={styles.countdownText}>
-            {daysLeft === 1 ? 'Falta 1 dia.' : `Faltam ${daysLeft} dias.`} Dá tempo de sobra.
-          </Text>
+          <Text style={styles.countdownText}>{countdownText(daysLeft)}</Text>
         </View>
       </View>
 

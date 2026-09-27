@@ -40,6 +40,7 @@ export const colors = {
   textMuted: '#756A69', // texto secundário (ajuste AA)
   iconMuted: '#8A7F7E', // ícones inativos, fechar
   canvas: '#F4EEEC', // fundo atrás do app no web
+  scrim: 'rgba(42, 31, 31, 0.4)', // fundo escurecido atrás de bottom sheets (text a 40%)
 } as const;
 
 export type ColorToken = keyof typeof colors;

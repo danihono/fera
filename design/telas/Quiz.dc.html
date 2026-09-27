@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Fera · Missão — Quiz</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&amp;family=Nunito:wght@400;600;700;800;900&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;font-family:'Nunito',system-ui,sans-serif;color:#2A1F1F;background:#F4EEEC}
+.fd{font-family:'Fredoka','Nunito',system-ui,sans-serif}
+.btn{transition:transform .08s ease, box-shadow .08s ease}
+.btn:active{transform:translateY(4px);box-shadow:0 0 0 transparent !important}
+.opt{transition:transform .08s ease, box-shadow .08s ease}
+.opt:active{transform:translateY(4px);box-shadow:0 0 0 transparent !important}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; position: relative; overflow: hidden; background: #FFFFFF; box-sizing: border-box; padding: 58px 20px 40px; display: flex; flex-direction: column">
+<div style="display: flex; align-items: center; gap: 12px; height: 48px">
+<a href="Home.dc.html" aria-label="Sair da missão" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; flex-shrink: 0">
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#8A7F7E" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg>
+</a>
+<div role="progressbar" aria-label="Progresso da missão" aria-valuenow="40" aria-valuemin="0" aria-valuemax="100" style="flex-grow: 1; height: 16px; border-radius: 999px; background: #F0E6E4; overflow: hidden">
+<div style="position: relative; width: 40%; height: 16px; border-radius: 999px; background: #E8322B"><div style="position: absolute; left: 8px; right: 8px; top: 3px; height: 4px; border-radius: 999px; background: #FF6F68"></div></div>
+</div>
+<div aria-label="5 vidas" style="display: flex; align-items: center; gap: 4px; flex-shrink: 0">
+<svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.5S3.5 15.5 3.5 9.3A4.3 4.3 0 0 1 12 7a4.3 4.3 0 0 1 8.5 2.3C20.5 15.5 12 20.5 12 20.5z" fill="#E8322B"></path></svg>
+<span class="fd" style="font-size: 18px; font-weight: 600; color: #E8322B">5</span>
+</div>
+</div>
+<span style="align-self: flex-start; margin-top: 22px; height: 28px; padding: 0 12px; border-radius: 999px; background: #FFE8E5; display: flex; align-items: center; font-size: 12px; font-weight: 900; letter-spacing: 1px; color: #C4261F">ESCOLHA A CERTA</span>
+<div style="display: flex; align-items: flex-end; gap: 10px; margin-top: 14px">
+<img src="../../assets/rugi/pensativo.png" alt="Rugi pensando" style="width: 64px; height: auto; display: block; flex-shrink: 0">
+<div style="flex-grow: 1; background: #FFFFFF; border: 2px solid #F0E6E4; border-radius: 20px 20px 20px 6px; padding: 14px 16px; margin-bottom: 18px">
+<h1 style="margin: 0; font-size: 20px; line-height: 1.25; font-weight: 800">Qual é a raiz dessa função?</h1>
+</div>
+</div>
+<div class="fd" style="margin-top: 16px; height: 84px; border-radius: 24px; background: #FFF8F6; display: flex; align-items: center; justify-content: center; font-size: 36px; font-weight: 600; letter-spacing: .5px">f(x) = 2x − 6</div>
+<div role="radiogroup" aria-label="Alternativas" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 20px">
+<button class="opt" role="radio" aria-checked="false" style="position: relative; height: 96px; border-radius: 20px; border: 2px solid #F0E6E4; background: #FFFFFF; box-shadow: 0 4px 0 #F0E6E4; font: inherit; color: #2A1F1F; cursor: pointer; display: flex; align-items: center; justify-content: center">
+<span style="position: absolute; top: 10px; left: 12px; width: 26px; height: 26px; border-radius: 8px; border: 2px solid #F0E6E4; box-sizing: border-box; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 900; color: #756A69">A</span>
+<span class="fd" style="font-size: 28px; font-weight: 600">x = −3</span>
+</button>
+<button class="opt" role="radio" aria-checked="true" style="position: relative; height: 96px; border-radius: 20px; border: 2px solid #E8322B; background: #FFE8E5; box-shadow: 0 4px 0 #E8322B; font: inherit; color: #2A1F1F; cursor: pointer; display: flex; align-items: center; justify-content: center">
+<span style="position: absolute; top: 10px; left: 12px; width: 26px; height: 26px; border-radius: 8px; background: #E8322B; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 900; color: #FFFFFF">B</span>
+<span class="fd" style="font-size: 28px; font-weight: 600; color: #C4261F">x = 3</span>
+</button>
+<button class="opt" role="radio" aria-checked="false" style="position: relative; height: 96px; border-radius: 20px; border: 2px solid #F0E6E4; background: #FFFFFF; box-shadow: 0 4px 0 #F0E6E4; font: inherit; color: #2A1F1F; cursor: pointer; display: flex; align-items: center; justify-content: center">
+<span style="position: absolute; top: 10px; left: 12px; width: 26px; height: 26px; border-radius: 8px; border: 2px solid #F0E6E4; box-sizing: border-box; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 900; color: #756A69">C</span>
+<span class="fd" style="font-size: 28px; font-weight: 600">x = 6</span>
+</button>
+<button class="opt" role="radio" aria-checked="false" style="position: relative; height: 96px; border-radius: 20px; border: 2px solid #F0E6E4; background: #FFFFFF; box-shadow: 0 4px 0 #F0E6E4; font: inherit; color: #2A1F1F; cursor: pointer; display: flex; align-items: center; justify-content: center">
+<span style="position: absolute; top: 10px; left: 12px; width: 26px; height: 26px; border-radius: 8px; border: 2px solid #F0E6E4; box-sizing: border-box; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 900; color: #756A69">D</span>
+<span class="fd" style="font-size: 28px; font-weight: 600">x = 2</span>
+</button>
+</div>
+<div style="flex-grow: 1"></div>
+<a class="btn" href="Acerto.dc.html" style="height: 56px; border-radius: 16px; background: #E8322B; box-shadow: 0 4px 0 #B8201A; color: #FFFFFF; font-size: 18px; font-weight: 800; letter-spacing: .6px; text-transform: uppercase; display: flex; align-items: center; justify-content: center; text-decoration: none">Verificar</a>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

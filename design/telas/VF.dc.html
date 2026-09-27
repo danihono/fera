@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Fera · Missão — Verdadeiro ou falso</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&amp;family=Nunito:wght@400;600;700;800;900&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;font-family:'Nunito',system-ui,sans-serif;color:#2A1F1F;background:#F4EEEC}
+.fd{font-family:'Fredoka','Nunito',system-ui,sans-serif}
+.btn{transition:transform .08s ease, box-shadow .08s ease}
+.btn:active{transform:translateY(4px);box-shadow:0 0 0 transparent !important}
+.opt{transition:transform .08s ease, box-shadow .08s ease}
+.opt:active{transform:translateY(5px);box-shadow:0 0 0 transparent !important}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; position: relative; overflow: hidden; background: #FFFFFF; box-sizing: border-box; padding: 58px 20px 40px; display: flex; flex-direction: column">
+<div style="display: flex; align-items: center; gap: 12px; height: 48px">
+<a href="Home.dc.html" aria-label="Sair da missão" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; flex-shrink: 0">
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#8A7F7E" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg>
+</a>
+<div role="progressbar" aria-label="Progresso da missão" aria-valuenow="80" aria-valuemin="0" aria-valuemax="100" style="flex-grow: 1; height: 16px; border-radius: 999px; background: #F0E6E4; overflow: hidden">
+<div style="position: relative; width: 80%; height: 16px; border-radius: 999px; background: #E8322B"><div style="position: absolute; left: 8px; right: 8px; top: 3px; height: 4px; border-radius: 999px; background: #FF6F68"></div></div>
+</div>
+<div aria-label="4 vidas" style="display: flex; align-items: center; gap: 4px; flex-shrink: 0">
+<svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.5S3.5 15.5 3.5 9.3A4.3 4.3 0 0 1 12 7a4.3 4.3 0 0 1 8.5 2.3C20.5 15.5 12 20.5 12 20.5z" fill="#E8322B"></path></svg>
+<span class="fd" style="font-size: 18px; font-weight: 600; color: #E8322B">4</span>
+</div>
+</div>
+<span style="align-self: flex-start; margin-top: 22px; height: 28px; padding: 0 12px; border-radius: 999px; background: #FFE8E5; display: flex; align-items: center; font-size: 12px; font-weight: 900; letter-spacing: 1px; color: #C4261F">VERDADEIRO OU FALSO?</span>
+<div style="margin-top: 16px; border: 2px solid #F0E6E4; border-radius: 24px; padding: 20px; display: flex; flex-direction: column; gap: 18px">
+<div style="height: 132px; border-radius: 16px; background: #FFF8F6; display: flex; align-items: center; justify-content: center">
+<svg width="220" height="116" viewBox="0 0 220 116" aria-hidden="true">
+<path d="M16 76h192" stroke="#D9CCC9" stroke-width="2.5" stroke-linecap="round"></path>
+<path d="M60 10v100" stroke="#D9CCC9" stroke-width="2.5" stroke-linecap="round"></path>
+<path d="M30 110 L190 14" stroke="#E8322B" stroke-width="5" stroke-linecap="round"></path>
+<circle cx="86" cy="76" r="8" fill="#FFFFFF" stroke="#E8322B" stroke-width="4"></circle>
+<text x="94" y="100" font-family="Fredoka, Nunito, sans-serif" font-size="14" font-weight="600" fill="#756A69">raiz</text>
+<text x="196" y="72" font-family="Fredoka, Nunito, sans-serif" font-size="14" font-weight="600" fill="#756A69">x</text>
+<text x="66" y="20" font-family="Fredoka, Nunito, sans-serif" font-size="14" font-weight="600" fill="#756A69">y</text>
+</svg>
+</div>
+<h1 style="margin: 0; font-size: 22px; line-height: 1.3; font-weight: 800; text-wrap: pretty">Toda função do 1º grau (a ≠ 0) tem exatamente uma raiz.</h1>
+</div>
+<div role="radiogroup" aria-label="Resposta" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 20px">
+<button class="opt" role="radio" aria-checked="true" style="height: 132px; border-radius: 24px; border: 2px solid #E8322B; background: #FFE8E5; box-shadow: 0 5px 0 #E8322B; font: inherit; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px">
+<span style="width: 52px; height: 52px; border-radius: 50%; background: #E8322B; display: flex; align-items: center; justify-content: center"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></span>
+<span style="font-size: 18px; font-weight: 900; color: #C4261F">Verdadeiro</span>
+</button>
+<button class="opt" role="radio" aria-checked="false" style="height: 132px; border-radius: 24px; border: 2px solid #F0E6E4; background: #FFFFFF; box-shadow: 0 5px 0 #F0E6E4; font: inherit; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px">
+<span style="width: 52px; height: 52px; border-radius: 50%; background: #FFF8F6; border: 2px solid #F0E6E4; box-sizing: border-box; display: flex; align-items: center; justify-content: center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2A1F1F" stroke-width="3.2" stroke-linecap="round" aria-hidden="true"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"></path></svg></span>
+<span style="font-size: 18px; font-weight: 900; color: #2A1F1F">Falso</span>
+</button>
+</div>
+<div style="flex-grow: 1"></div>
+<a class="btn" href="Erro.dc.html" style="height: 56px; border-radius: 16px; background: #E8322B; box-shadow: 0 4px 0 #B8201A; color: #FFFFFF; font-size: 18px; font-weight: 800; letter-spacing: .6px; text-transform: uppercase; display: flex; align-items: center; justify-content: center; text-decoration: none">Verificar</a>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

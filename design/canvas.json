@@ -1,0 +1,255 @@
+{
+  "v": 3,
+  "attachments": {},
+  "boards": {
+    "Acerto.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "radius": 48,
+      "title": "07a · Feedback — Acerto",
+      "w": 390,
+      "x": 1410,
+      "y": 2408
+    },
+    "DesignSystem.dc.html": {
+      "h": 2400,
+      "title": "Design system",
+      "w": 1760,
+      "x": 0,
+      "y": 4816
+    },
+    "Erro.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "radius": 48,
+      "title": "07b · Feedback — Erro",
+      "w": 390,
+      "x": 1880,
+      "y": 2408
+    },
+    "Fim.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "radius": 48,
+      "title": "08 · Fim de missão",
+      "w": 390,
+      "x": 2350,
+      "y": 2408
+    },
+    "Gerando.dc.html": {
+      "h": 844,
+      "radius": 48,
+      "title": "05 · Gerando trilha",
+      "w": 390,
+      "x": 940,
+      "y": 1204
+    },
+    "Home.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "radius": 48,
+      "title": "03 · Início (trilha)",
+      "w": 390,
+      "x": 0,
+      "y": 1204
+    },
+    "Lacuna.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "radius": 48,
+      "title": "06b · Missão — Lacuna",
+      "w": 390,
+      "x": 470,
+      "y": 2408
+    },
+    "Main.dc.html": {
+      "h": 844,
+      "radius": 48,
+      "title": "01 · Splash",
+      "w": 390,
+      "x": 0,
+      "y": 0
+    },
+    "NovaProva.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "radius": 48,
+      "title": "04 · Nova prova — Conteúdo",
+      "w": 390,
+      "x": 470,
+      "y": 1204
+    },
+    "Onb1.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "radius": 48,
+      "title": "02a · Onboarding — Rugi",
+      "w": 390,
+      "x": 470,
+      "y": 0
+    },
+    "Onb2.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "radius": 48,
+      "title": "02b · Onboarding — Matéria",
+      "w": 390,
+      "x": 940,
+      "y": 0
+    },
+    "Onb3.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "radius": 48,
+      "title": "02c · Onboarding — Data",
+      "w": 390,
+      "x": 1410,
+      "y": 0
+    },
+    "Perfil.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "radius": 48,
+      "title": "12 · Perfil",
+      "w": 390,
+      "x": 1410,
+      "y": 3612
+    },
+    "Premium.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "radius": 48,
+      "title": "13 · Fera+",
+      "w": 390,
+      "x": 1880,
+      "y": 3612
+    },
+    "Quiz.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "radius": 48,
+      "title": "06a · Missão — Quiz",
+      "w": 390,
+      "x": 0,
+      "y": 2408
+    },
+    "Streak.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "radius": 48,
+      "title": "09 · Streak perdida",
+      "w": 390,
+      "x": 0,
+      "y": 3612
+    },
+    "TabBar.dc.html": {
+      "h": 120,
+      "is_interactive": true,
+      "title": "Componente · Tab bar",
+      "w": 390,
+      "x": 1840,
+      "y": 4816
+    },
+    "Turma.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "radius": 48,
+      "title": "10 · Turma",
+      "w": 390,
+      "x": 470,
+      "y": 3612
+    },
+    "VF.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "radius": 48,
+      "title": "06c · Missão — V ou F",
+      "w": 390,
+      "x": 940,
+      "y": 2408
+    },
+    "Vespera.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "radius": 48,
+      "title": "11 · Modo véspera",
+      "w": 390,
+      "x": 940,
+      "y": 3612
+    }
+  },
+  "createdOnFiles": {
+    "at": "2026-09-24T23:40:00Z",
+    "v": 1
+  },
+  "designSystems": [],
+  "launch": {
+    "view": "canvas"
+  },
+  "notes": {
+    "t1": {
+      "kind": "title1",
+      "maxW": 1800,
+      "text": "Entrada",
+      "w": 240,
+      "x": 0,
+      "y": -300
+    },
+    "t2": {
+      "kind": "title1",
+      "maxW": 1330,
+      "text": "Trilha e nova prova",
+      "w": 240,
+      "x": 0,
+      "y": 904
+    },
+    "t3": {
+      "kind": "title1",
+      "maxW": 2740,
+      "text": "Missão e feedback",
+      "w": 240,
+      "x": 0,
+      "y": 2108
+    },
+    "t4": {
+      "kind": "title1",
+      "maxW": 2270,
+      "text": "Engajamento, turma e conta",
+      "w": 240,
+      "x": 0,
+      "y": 3312
+    },
+    "t5": {
+      "kind": "title1",
+      "maxW": 2230,
+      "text": "Design system",
+      "w": 240,
+      "x": 0,
+      "y": 4516
+    }
+  },
+  "order": [
+    "Main.dc.html",
+    "Onb1.dc.html",
+    "Onb2.dc.html",
+    "Onb3.dc.html",
+    "Home.dc.html",
+    "NovaProva.dc.html",
+    "Gerando.dc.html",
+    "Quiz.dc.html",
+    "Lacuna.dc.html",
+    "VF.dc.html",
+    "Acerto.dc.html",
+    "Erro.dc.html",
+    "Fim.dc.html",
+    "Streak.dc.html",
+    "Turma.dc.html",
+    "Vespera.dc.html",
+    "Perfil.dc.html",
+    "Premium.dc.html",
+    "DesignSystem.dc.html",
+    "TabBar.dc.html"
+  ],
+  "pages": [],
+  "title": "Fera — App de estudos"
+}

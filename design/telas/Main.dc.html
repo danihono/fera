@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Fera · Splash</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&amp;family=Nunito:wght@400;600;700;800;900&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;font-family:'Nunito',system-ui,sans-serif;color:#2A1F1F;background:#F4EEEC}
+.fd{font-family:'Fredoka','Nunito',system-ui,sans-serif}
+@keyframes hop{0%,100%{transform:translateY(0) scale(1,1)}10%{transform:translateY(0) scale(1.06,.94)}40%{transform:translateY(-38px) scale(.97,1.04)}70%{transform:translateY(0) scale(1,1)}78%{transform:translateY(0) scale(1.05,.95)}}
+@keyframes shadow{0%,100%,70%{transform:scaleX(1);opacity:.28}40%{transform:scaleX(.65);opacity:.14}}
+@keyframes dot{0%,100%{opacity:.35;transform:scale(.8)}50%{opacity:1;transform:scale(1)}}
+.hop{animation:hop 1.3s cubic-bezier(.3,.6,.4,1) infinite;transform-origin:50% 100%}
+.shd{animation:shadow 1.3s cubic-bezier(.3,.6,.4,1) infinite}
+.d1{animation:dot 1s infinite}.d2{animation:dot 1s .2s infinite}.d3{animation:dot 1s .4s infinite}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; position: relative; overflow: hidden; background: #E8322B; display: flex; flex-direction: column; align-items: center; justify-content: center">
+<svg width="390" height="844" viewBox="0 0 390 844" style="position: absolute; left: 0; top: 0" aria-hidden="true">
+<path d="M-20 120 C 60 100 120 130 150 170 C 100 160 40 165 -20 190 Z" fill="#D72A23"></path>
+<path d="M-20 250 C 40 230 80 250 105 280 C 60 275 20 285 -20 300 Z" fill="#D72A23"></path>
+<path d="M410 560 C 330 540 270 570 240 610 C 290 600 350 605 410 630 Z" fill="#D72A23"></path>
+<path d="M410 690 C 350 670 310 690 285 720 C 330 715 370 725 410 740 Z" fill="#D72A23"></path>
+<path d="M410 90 C 350 80 320 100 300 125 C 340 120 380 125 410 140 Z" fill="#D72A23"></path>
+<path d="M-20 700 C 30 690 70 705 90 730 C 50 728 15 735 -20 750 Z" fill="#D72A23"></path>
+</svg>
+<div style="position: relative; display: flex; flex-direction: column; align-items: center; gap: 4px; margin-top: -40px">
+<img class="hop" src="../../assets/rugi/forca.png" alt="Rugi, o tigrinho do Fera, pulando" style="width: 210px; height: auto; display: block">
+<div class="shd" style="width: 120px; height: 16px; border-radius: 50%; background: #8E1510"></div>
+</div>
+<div class="fd" style="position: relative; margin-top: 28px; font-size: 76px; line-height: 1; font-weight: 700; color: #FFFFFF; letter-spacing: -1px">Fera</div>
+<div style="position: relative; margin-top: 10px; font-size: 17px; font-weight: 800; color: #FFFFFF">Vira fera até o dia da prova.</div>
+<div style="position: absolute; bottom: 78px; left: 0; right: 0; display: flex; justify-content: center; gap: 8px" aria-label="Carregando">
+<div class="d1" style="width: 10px; height: 10px; border-radius: 50%; background: #FFFFFF"></div>
+<div class="d2" style="width: 10px; height: 10px; border-radius: 50%; background: #FFFFFF"></div>
+<div class="d3" style="width: 10px; height: 10px; border-radius: 50%; background: #FFFFFF"></div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

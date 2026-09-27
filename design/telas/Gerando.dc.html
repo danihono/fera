@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Fera · Gerando trilha</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&amp;family=Nunito:wght@400;600;700;800;900&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;font-family:'Nunito',system-ui,sans-serif;color:#2A1F1F;background:#F4EEEC}
+.fd{font-family:'Fredoka','Nunito',system-ui,sans-serif}
+@keyframes float{0%,100%{transform:translateY(0) rotate(-6deg)}50%{transform:translateY(-10px) rotate(-2deg)}}
+@keyframes drift{0%{transform:translateY(0);opacity:0}20%{opacity:1}100%{transform:translateY(-60px);opacity:0}}
+@keyframes shine{0%{transform:translateX(-80px)}100%{transform:translateX(320px)}}
+@keyframes grow{0%{width:52%}100%{width:68%}}
+@keyframes cycle{0%,3%{opacity:0;transform:translateY(8px)}8%,30%{opacity:1;transform:translateY(0)}35%,100%{opacity:0;transform:translateY(-8px)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes think{0%,100%{transform:rotate(0)}50%{transform:rotate(2deg)}}
+.book{animation:float 2.6s ease-in-out infinite}
+.s1{animation:drift 3s ease-out infinite}.s2{animation:drift 3s 1s ease-out infinite}.s3{animation:drift 3s 2s ease-out infinite}
+.shine{animation:shine 1.8s ease-in-out infinite}
+.grow{animation:grow 3s ease-out both}
+.p1{animation:cycle 7.5s infinite}.p2{animation:cycle 7.5s 2.5s infinite}.p3{animation:cycle 7.5s 5s infinite}
+.spin{animation:spin 1s linear infinite}
+.think{animation:think 3s ease-in-out infinite;transform-origin:50% 100%}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; position: relative; overflow: hidden; background: #FFF8F6; box-sizing: border-box; padding: 58px 20px 40px; display: flex; flex-direction: column; align-items: center">
+<div style="position: relative; width: 330px; height: 320px; margin-top: 40px">
+<div style="position: absolute; left: 45px; top: 30px; width: 240px; height: 240px; border-radius: 50%; background: #FFE8E5"></div>
+<span class="fd s1" aria-hidden="true" style="position: absolute; left: 70px; top: 70px; font-size: 26px; font-weight: 700; color: #E8322B">x</span>
+<span class="fd s2" aria-hidden="true" style="position: absolute; left: 250px; top: 50px; font-size: 26px; font-weight: 700; color: #FF6B1A">=</span>
+<span class="fd s3" aria-hidden="true" style="position: absolute; left: 230px; top: 110px; font-size: 22px; font-weight: 700; color: #E8322B">?</span>
+<img class="think" src="../../assets/rugi/pensativo.png" alt="Rugi estudando o seu caderno" style="position: absolute; left: 108px; top: 22px; width: 190px; height: auto">
+<svg class="book" width="130" height="96" viewBox="0 0 130 96" style="position: absolute; left: 14px; top: 196px" aria-hidden="true">
+<path d="M65 18 C 48 8 24 6 6 10 V 84 C 24 80 48 82 65 92 Z" fill="#FFFFFF" stroke="#8E1A14" stroke-width="3" stroke-linejoin="round"></path>
+<path d="M65 18 C 82 8 106 6 124 10 V 84 C 106 80 82 82 65 92 Z" fill="#FFFFFF" stroke="#8E1A14" stroke-width="3" stroke-linejoin="round"></path>
+<path d="M16 26 C 30 23 44 24 56 30 M16 40 C 30 37 44 38 56 44 M16 54 C 28 51 38 52 48 56" stroke="#F0B9B3" stroke-width="3" stroke-linecap="round" fill="none"></path>
+<path d="M74 30 C 86 24 100 23 114 26 M74 44 C 86 38 100 37 114 40" stroke="#F0B9B3" stroke-width="3" stroke-linecap="round" fill="none"></path>
+<text x="86" y="68" font-family="Fredoka, Nunito, sans-serif" font-size="16" font-weight="700" fill="#E8322B">f(x)</text>
+<path d="M60 90 L65 92 L70 90 L70 96 L65 94 L60 96 Z" fill="#E8322B"></path>
+</svg>
+</div>
+<h1 class="fd" style="margin: 18px 0 0; font-size: 28px; line-height: 1.1; font-weight: 600; text-align: center">Montando sua trilha…</h1>
+<div aria-live="polite" style="position: relative; width: 100%; height: 26px; margin-top: 10px">
+<span class="p1" style="position: absolute; inset: 0; text-align: center; font-size: 16px; font-weight: 700; color: #756A69">Lendo sua letra (tá bonita, hein)</span>
+<span class="p2" style="position: absolute; inset: 0; text-align: center; font-size: 16px; font-weight: 700; color: #756A69">Separando o que mais cai…</span>
+<span class="p3" style="position: absolute; inset: 0; text-align: center; font-size: 16px; font-weight: 700; color: #756A69">Afiando as garras…</span>
+</div>
+<div style="width: 100%; display: flex; align-items: center; gap: 12px; margin-top: 24px">
+<div role="progressbar" aria-label="Progresso da trilha" aria-valuenow="68" aria-valuemin="0" aria-valuemax="100" style="flex-grow: 1; height: 16px; border-radius: 999px; background: #F0E6E4; overflow: hidden">
+<div class="grow" style="position: relative; width: 68%; height: 16px; border-radius: 999px; background: #E8322B; overflow: hidden">
+<div style="position: absolute; left: 8px; right: 8px; top: 3px; height: 4px; border-radius: 999px; background: #FF6F68"></div>
+<div class="shine" style="position: absolute; top: 0; left: 0; width: 40px; height: 16px; background: #FF8A84; opacity: .45; transform: skewX(-20deg)"></div>
+</div>
+</div>
+<span class="fd" style="font-size: 18px; font-weight: 600; color: #E8322B; min-width: 44px; text-align: right">68%</span>
+</div>
+<div style="width: 100%; margin-top: 28px; background: #FFFFFF; border: 2px solid #F0E6E4; border-radius: 24px; padding: 8px 18px; box-sizing: border-box; display: flex; flex-direction: column">
+<div style="display: flex; align-items: center; gap: 12px; height: 52px; border-bottom: 2px solid #F0E6E4">
+<span style="width: 28px; height: 28px; border-radius: 50%; background: #E6F7EE; display: flex; align-items: center; justify-content: center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#17804F" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></span>
+<span style="font-size: 16px; font-weight: 700">3 fotos lidas</span>
+</div>
+<div style="display: flex; align-items: center; gap: 12px; height: 52px; border-bottom: 2px solid #F0E6E4">
+<span style="width: 28px; height: 28px; border-radius: 50%; background: #E6F7EE; display: flex; align-items: center; justify-content: center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#17804F" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></span>
+<span style="font-size: 16px; font-weight: 700">4 tópicos encontrados</span>
+</div>
+<div style="display: flex; align-items: center; gap: 12px; height: 52px">
+<svg class="spin" width="28" height="28" viewBox="0 0 28 28" aria-hidden="true"><circle cx="14" cy="14" r="11" fill="none" stroke="#FFE8E5" stroke-width="4"></circle><path d="M14 3a11 11 0 0 1 11 11" fill="none" stroke="#E8322B" stroke-width="4" stroke-linecap="round"></path></svg>
+<span style="font-size: 16px; font-weight: 800">Criando 12 missões</span>
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

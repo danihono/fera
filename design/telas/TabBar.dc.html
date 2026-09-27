@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Fera · Tab bar</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&amp;family=Nunito:wght@400;600;700;800;900&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<nav aria-label="Navegação principal" style="width: 390px; height: 120px; position: relative; font-family: 'Nunito', system-ui, sans-serif; color: #2A1F1F">
+<div style="position: absolute; left: 0; right: 0; bottom: 0; height: 98px; background: #FFFFFF; border-top: 2px solid #F0E6E4; border-radius: 24px 24px 0 0; box-sizing: border-box; padding: 8px 8px 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); align-items: start">
+<a href="Home.dc.html" aria-label="Início" style="display: flex; flex-direction: column; align-items: center; gap: 4px; min-height: 52px; text-decoration: none">
+<div style="width: 56px; height: 32px; border-radius: 999px; display: flex; align-items: center; justify-content: center; background: {{t1.bg}}">
+<svg width="26" height="26" viewBox="0 0 24 24" fill="{{t1.fill}}" stroke="{{t1.color}}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 10.5 12 3.5l8.5 7V19a1.5 1.5 0 0 1-1.5 1.5h-4v-5.5h-6v5.5H5A1.5 1.5 0 0 1 3.5 19z"></path></svg>
+</div>
+<span style="font-size: 12px; line-height: 14px; font-weight: {{t1.weight}}; color: {{t1.lcolor}}">Início</span>
+</a>
+<a href="Home.dc.html" aria-label="Provas" style="display: flex; flex-direction: column; align-items: center; gap: 4px; min-height: 52px; text-decoration: none">
+<div style="width: 56px; height: 32px; border-radius: 999px; display: flex; align-items: center; justify-content: center; background: {{t2.bg}}">
+<svg width="26" height="26" viewBox="0 0 24 24" fill="{{t2.fill}}" stroke="{{t2.color}}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 3.5h11a1.5 1.5 0 0 1 1.5 1.5v14a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 5 19V5a1.5 1.5 0 0 1 1.5-1.5z"></path><path d="M9 3.5v17" stroke="{{t2.inner}}"></path><path d="M12 9h4" stroke="{{t2.inner}}"></path><path d="M12 12.5h4" stroke="{{t2.inner}}"></path></svg>
+</div>
+<span style="font-size: 12px; line-height: 14px; font-weight: {{t2.weight}}; color: {{t2.lcolor}}">Provas</span>
+</a>
+<div style="display: flex; justify-content: center">
+<a href="NovaProva.dc.html" aria-label="Nova prova" style="width: 68px; height: 68px; margin-top: -36px; border-radius: 50%; background: #E8322B; border: 4px solid #FFFFFF; box-shadow: 0 4px 0 #B8201A; display: flex; align-items: center; justify-content: center; box-sizing: border-box">
+<svg width="34" height="34" viewBox="0 0 24 24" aria-hidden="true"><circle cx="5.6" cy="9.4" r="2.1" fill="#FFFFFF"></circle><circle cx="9.3" cy="5.6" r="2.2" fill="#FFFFFF"></circle><circle cx="14.7" cy="5.6" r="2.2" fill="#FFFFFF"></circle><circle cx="18.4" cy="9.4" r="2.1" fill="#FFFFFF"></circle><path d="M12 10.2c3.4 0 6.6 3.4 6.6 6.4 0 2.2-1.6 3.4-3.3 3.4-1.4 0-2.1-.7-3.3-.7s-1.9.7-3.3.7c-1.7 0-3.3-1.2-3.3-3.4 0-3 3.2-6.4 6.6-6.4z" fill="#FFFFFF"></path><path d="M12 13v5.2M9.4 15.6h5.2" stroke="#E8322B" stroke-width="2.4" stroke-linecap="round"></path></svg>
+</a>
+</div>
+<a href="Turma.dc.html" aria-label="Turma" style="display: flex; flex-direction: column; align-items: center; gap: 4px; min-height: 52px; text-decoration: none">
+<div style="width: 56px; height: 32px; border-radius: 999px; display: flex; align-items: center; justify-content: center; background: {{t3.bg}}">
+<svg width="26" height="26" viewBox="0 0 24 24" fill="{{t3.fill}}" stroke="{{t3.color}}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.5 20.5V9.5h5v11z"></path><path d="M3.5 20.5v-6h6v6z"></path><path d="M14.5 20.5v-8h6v8z"></path><path d="M12 3.5l.9 1.8 2 .3-1.5 1.4.4 2L12 8.1l-1.8.9.4-2-1.5-1.4 2-.3z" stroke-width="1.6"></path></svg>
+</div>
+<span style="font-size: 12px; line-height: 14px; font-weight: {{t3.weight}}; color: {{t3.lcolor}}">Turma</span>
+</a>
+<a href="Perfil.dc.html" aria-label="Perfil" style="display: flex; flex-direction: column; align-items: center; gap: 4px; min-height: 52px; text-decoration: none">
+<div style="width: 56px; height: 32px; border-radius: 999px; display: flex; align-items: center; justify-content: center; background: {{t4.bg}}">
+<svg width="26" height="26" viewBox="0 0 24 24" fill="{{t4.fill}}" stroke="{{t4.color}}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8.5" r="4"></circle><path d="M4.5 20.5c.8-4 3.9-6.2 7.5-6.2s6.7 2.2 7.5 6.2z"></path></svg>
+</div>
+<span style="font-size: 12px; line-height: 14px; font-weight: {{t4.weight}}; color: {{t4.lcolor}}">Perfil</span>
+</a>
+</div>
+</nav>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"tab":{"editor":"enum","options":["inicio","provas","turma","perfil"],"default":"inicio"},"$preview":{"width":390,"height":120}}'>
+class Component extends DCLogic {
+renderVals() {
+const tab = this.props.tab ?? 'inicio';
+const mk = (id) => {
+const on = tab === id;
+return {
+bg: on ? '#FFE8E5' : 'transparent',
+fill: on ? '#E8322B' : 'none',
+color: on ? '#E8322B' : '#8A7F7E',
+inner: on ? '#FFE8E5' : '#8A7F7E',
+weight: on ? '800' : '700',
+lcolor: on ? '#C4261F' : '#756A69'
+};
+};
+return { t1: mk('inicio'), t2: mk('provas'), t3: mk('turma'), t4: mk('perfil') };
+}
+}
+</script>
+</body>
+</html>

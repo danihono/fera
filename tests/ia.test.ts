@@ -148,3 +148,23 @@ test('limite de uso (429) vira erro de fila', async () => {
   const limite: ModeloIA = { id: 'x', gerar: async () => Promise.reject(Object.assign(new Error('Resource exhausted'), { status: 429 })) };
   await assert.rejects(gerarProva(pedido, { modelo: () => limite, imagem: null, espera: async () => {} }), (e: unknown) => e instanceof ErroGeracao && e.codigo === 'limite');
 });
+
+test('modo econômico (grátis): questão contestada sai sem rodada de correção', async () => {
+  const demo = modeloDemo(0);
+  const chamadas: string[] = [];
+  const autor: ModeloIA = {
+    id: 'autor',
+    async gerar(p) {
+      chamadas.push(p.tarefa);
+      if (p.tarefa === 'missoes') {
+        const r = (await demo.gerar(p)) as { missoes: typeof missoesExemplo };
+        r.missoes[0].questoes[0] = { ...missoesExemplo[0].questoes[0], correta: 1 };
+        return r;
+      }
+      return demo.gerar(p);
+    },
+  };
+  const prova = await gerarProva({ ...pedido, formatos: ['resumo'] }, { modelo: () => autor, imagem: null, espera: async () => {}, corrigir: false });
+  assert.deepEqual(prova.revisao, { conferidas: 25, corrigidas: 0, removidas: 1 });
+  assert.deepEqual(chamadas.sort(), ['missoes', 'plano', 'resumo', 'revisao']);
+});

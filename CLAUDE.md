@@ -50,18 +50,28 @@ Montadas só com o design system para dar uma ideia do app completo — substitu
 | Configurações | `src/app/configuracoes.tsx` | engrenagem do Perfil |
 | Todas as conquistas | `src/app/conquistas.tsx` | "Ver todas" do Perfil |
 | Trocar/entrar em turma | sheets em `src/app/(tabs)/turma.tsx` | seletor de turma |
-| Escolha de formatos | `src/app/prova/formatos.tsx` | cards da Nova prova (04) |
+| Conferir o conteúdo | `src/app/prova/conteudo.tsx` | cards da Nova prova (04) |
+| Escolha de formatos | `src/app/prova/formatos.tsx` | Conteúdo |
 | Materiais da prova | `src/app/prova/materiais.tsx` | fim da Gerando, card da Início/Provas |
 | Material (resumo, slides…) | `src/app/material/[tipo].tsx` + `src/components/materiais/` | Materiais |
 
-Formatos (grátis e Fera+) ficam em `src/data/formatos.tsx`; conteúdo de exemplo em `src/data/materiais.ts`. Grátis escolhe até 2 formatos por prova, Fera+ até 4.
+Formatos (grátis e Fera+) ficam em `src/data/formatos.tsx`. Grátis escolhe até 2 formatos por prova, Fera+ até 4; o quiz (missões da trilha) sempre vem e não conta.
+
+## IA e Firebase
+
+- `src/ia/` é código puro (sem React Native), usado pelo app e pelas Cloud Functions (`functions/`, empacotado com esbuild). Só imports relativos lá dentro.
+- Modos: demonstração (sem Firebase, prova de exemplo de `src/ia/exemplo.ts`), grátis (Firebase AI Logic + Gemini, `src/lib/iaGratis.ts`) e qualidade (Functions; `src/ia/rotas.ts` diz qual IA faz cada tarefa). Escolha em `src/data/geracao.ts`.
+- Toda resposta da IA passa por `src/ia/normalizar.ts` (limites de tamanho da tela, gabarito coerente) e as questões por revisão independente. Mudou um esquema? Rode `npm run test:ia`.
+- Chaves de IA só no Secret Manager das Functions. No app só vão as `EXPO_PUBLIC_*` (config pública do Firebase). Leia sempre `process.env.EXPO_PUBLIC_X` direto (o Expo só embute assim) e use `npx expo start --clear` depois de mudar o `.env.local`.
+- Firestore: `usuarios/{uid}` (estado), `conteudos/{prova}`, `geracoes/{prova}` (só servidor escreve), `turmas/{codigo}/membros/{uid}`. Mudou as regras? Rode `npm run test:emuladores`.
+- Passo a passo em `docs/COMO-LIGAR.md`; escolhas de IA e custos em `docs/IA.md`.
 
 Também são prévia: preços do Fera+ (compra simulada), atalhos "Prévias" nas Configurações (Streak e Véspera), troféu do Dia D → Véspera, textos das sheets (`InfoSheet`).
-O estado do app (onboarding feito, matéria/data, formatos, XP, Fera+, turma, nome) fica em `src/data/store.ts`, salvo no aparelho com AsyncStorage (localStorage na web). "Sair da conta" apaga.
+O estado do app (onboarding, provas, progresso da trilha, XP, sequência, Fera+, turma, nome, série) fica em `src/data/store.ts`, salvo no aparelho com AsyncStorage (localStorage na web) e espelhado no Firestore quando o Firebase está ligado (`src/data/nuvem.ts`). "Sair da conta" apaga tudo, inclusive na nuvem.
 
 Site (GitHub Pages): `/fera/` é a moldura de celular (`web/index.html`) e `/fera/app/` é o app (`baseUrl` no `app.json`). Dentro da moldura, `src/lib/webFrame.ts` simula as áreas seguras do iPhone (47/34).
 
-Dados de exemplo (iguais aos do design) ficam em `src/data/` até o Firebase entrar. Animações em loop usam `useLoop` / `kf` / `pingPong` de `src/lib/anim.ts`; curvas de easing ficam fora do componente (se mudarem de identidade a cada render, a animação reinicia).
+Telas de altura fixa usam `<Rolavel>` (`src/components/Rolavel.tsx`) ou `flexGrow` no espaçador: no 390 × 844 nada muda, em celular baixo rolam em vez de cortar. Confira também em 375 × 667. Animações em loop usam `useLoop` / `kf` / `pingPong` de `src/lib/anim.ts`; curvas de easing ficam fora do componente (se mudarem de identidade a cada render, a animação reinicia).
 
 Medidas de elementos com `border` e `height` **sem** `box-sizing: border-box` no `.dc.html` somam a borda à altura (ex.: pílula 64 + 2 × 2 = 68). Botões (`<button>`) já são border-box.
 

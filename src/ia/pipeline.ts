@@ -50,6 +50,11 @@ export type Motor = {
   concorrencia?: number;
   /** Espera entre tentativas; os testes usam 0. */
   espera?: (ms: number) => Promise<void>;
+  /**
+   * false = questão que o revisor contestar sai direto, sem rodada de correção (2 chamadas a menos:
+   * o modo grátis tem poucos pedidos por dia).
+   */
+  corrigir?: boolean;
 };
 
 export type CodigoErro = 'fora-do-tema' | 'sem-conteudo' | 'limite' | 'falhou';
@@ -323,7 +328,9 @@ export async function gerarProva(
     }
 
     const sai = new Set<QuestaoIA>();
-    if (divergentes.length) {
+    if (divergentes.length && motor.corrigir === false) {
+      divergentes.forEach(({ item }) => sai.add(item.q));
+    } else if (divergentes.length) {
       try {
         // O autor revê cada divergente com a objeção do revisor; a versão nova passa por outra conferência.
         const novas = await chamar(

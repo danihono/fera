@@ -2,7 +2,9 @@
 
 App de estudos gamificado: o aluno cadastra a prova, manda o conteúdo (foto, PDF ou texto) e a IA transforma em materiais — resumo, explicação, mapa mental, slides, gráficos, fluxograma, imagens — e em missões rápidas (quiz, teste, simulado), com o Rugi do lado até o dia da prova.
 
-**Prévia no navegador:** https://danihono.github.io/fera/ (no computador aparece dentro de um celular; no celular abre direto).
+**Prévia no navegador:** https://danihono.github.io/fera/ (no computador aparece dentro de um celular; no celular abre direto). Sem Firebase configurado ela roda em modo demonstração, com uma prova de exemplo.
+
+**Ligar de verdade (Firebase + IA):** [docs/COMO-LIGAR.md](docs/COMO-LIGAR.md) · **Qual IA faz o quê e quanto custa:** [docs/IA.md](docs/IA.md)
 
 **Fonte do design:** canvas "Fera — App de estudos" (Claude Design), em `design/`. As telas 01–13 são tradução 1:1 dos artboards; nada de valor solto — cores, fontes e medidas vêm de `src/theme/`. Regras completas em `CLAUDE.md`.
 
@@ -25,6 +27,9 @@ Todas as bibliotecas do projeto já vêm no Expo Go (SDK 57), então não precis
 npx expo start --web            # versão web, pra comparar com o design
 npx expo export --platform web  # build web (o GitHub Pages publica sozinho a cada push na main)
 npx tsc --noEmit && npx expo lint   # antes de subir
+npm run test:ia                 # linha de montagem da IA (sem chamar IA nenhuma)
+npm run emuladores              # Firebase local (Auth, Firestore, Functions, Storage)
+npm run test:emuladores         # regras de segurança + Cloud Function de ponta a ponta
 ```
 
 ## Estrutura
@@ -34,33 +39,41 @@ src/
   app/                    rotas (Expo Router)
     index.tsx             01 · Splash
     onboarding/           02a–c · Rugi, matéria, data
-    (tabs)/               03 Início · Provas · 10 Turma · 12 Perfil
-    prova/                04 Nova prova · formatos · 05 Gerando · materiais
-    material/[tipo].tsx   materiais gerados (resumo, slides, mapa…)
+    (tabs)/               03 Início (trilha) · Provas · 10 Turma · 12 Perfil
+    prova/                04 Nova prova · conteúdo · formatos · 05 Gerando · materiais
+    material/[tipo].tsx   materiais gerados (resumo, slides, mapa, gráficos…)
     missao/               06 Quiz/Lacuna/VF + 07 Acerto/Erro · 08 Fim
     streak.tsx · vespera/ · premium.tsx · configuracoes.tsx · conquistas.tsx
+  ia/                     a IA: tipos, esquemas JSON, prompts, linha de montagem, revisão, exemplo
+                          (o mesmo código roda no app e nas Cloud Functions)
   components/             FeraButton, TabBar, Rugi, sheets, missao/, materiais/, icons…
-  data/                   store.ts (estado salvo no aparelho) + dados de exemplo
-  lib/                    anim (loops/keyframes), datas, navegação, moldura web
+  data/                   store (estado), nuvem (Firestore), geração, conteúdo, rascunho (fotos/PDF)
+  lib/                    firebase, IA grátis (AI Logic), vibração, anim, datas, navegação, moldura web
   theme/                  tokens do design system
+functions/                Cloud Functions do modo qualidade (Claude, Gemini, GPT Image)
+firestore.rules · storage.rules · firebase.json
+tests/                    testes da IA e dos emuladores
 web/index.html            página da moldura de celular do site
 design/                   telas do canvas (.dc.html) e Fera-telas.pdf
+docs/                     como ligar o Firebase e a IA
 ```
 
 ## Status
 
 | Parte | Status |
 | --- | --- |
-| Telas 01–13 do design | ✅ iguais ao PDF (conferidas em 390 × 844) |
-| Aba Provas, Configurações, Conquistas, escolha de formatos, materiais | 🧪 prévia montada com o design system — falta desenhar no canvas |
-| Estado (onboarding, prova, XP, Fera+, formatos) | 🧪 salvo no aparelho; falta backend |
-| Geração por IA | 🧪 conteúdo de exemplo (Funções do 1º grau) |
+| Telas 01–13 do design | ✅ iguais ao PDF em 390 × 844; em celular menor rolam em vez de cortar |
+| Captura (câmera, galeria, PDF, texto) | ✅ |
+| Geração por IA | ✅ demonstração · grátis (Gemini) · qualidade (Claude + Gemini + GPT Image), com revisão do gabarito |
+| Trilha, missões, vidas, XP, nível, sequência, véspera, conquistas | ✅ com dados reais |
+| Firebase (login anônimo, Firestore, turmas com ranking ao vivo) | ✅ testado nos emuladores |
+| Aba Provas, Configurações, Conquistas, formatos, materiais | 🧪 montadas com o design system — falta desenhar no canvas |
 | Pagamento Fera+ | 🧪 compra simulada, preços de exemplo |
 
 ## Próximos passos
 
-1. Testar no celular (Expo Go) e ajustar o que for diferente da web.
-2. Firebase: login, dados do usuário, provas e progresso.
-3. Captura do conteúdo (câmera, PDF, texto) e a função de IA que gera trilha, materiais e questões.
-4. Regras do jogo: trilha que libera missões, sequência, vidas, nível, véspera automática.
-5. Notificações, sons/vibração, compra do Fera+ e convite por link.
+1. Criar o projeto Firebase e testar no celular com a IA de verdade ([docs/COMO-LIGAR.md](docs/COMO-LIGAR.md)).
+2. Pagamento de verdade (RevenueCat / lojas) com o premium vindo do servidor.
+3. Notificação do lembrete diário e da véspera (expo-notifications).
+4. Prova da turma: gerar uma vez e compartilhar com a sala.
+5. App Check e conta com e-mail/Google (pra não perder o progresso ao trocar de celular).

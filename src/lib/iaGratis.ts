@@ -36,8 +36,11 @@ function modeloGemini(): ModeloIA {
   };
 }
 
-/** Tudo no Gemini Flash, 2 chamadas por vez (o nível grátis tem limite por minuto). */
+/**
+ * Tudo no Gemini Flash, 2 chamadas por vez (o nível grátis tem limite por minuto e por dia).
+ * Sem rodada de correção: questão contestada pelo revisor sai. Uma prova ≈ 3 + nº de formatos pedidos.
+ */
 export function motorGratis(): Motor {
   const m = modeloGemini();
-  return { modelo: () => m, imagem: null, concorrencia: 2 };
+  return { modelo: () => m, imagem: null, concorrencia: 2, corrigir: false };
 }

@@ -33,7 +33,7 @@ firebase deploy --only firestore   # regras (firestore.rules) e índices
 ```
 
 ### 1.4 Apontar o app pro projeto
-Copie `.env.example` para `.env.local` e preencha com o `firebaseConfig`:
+A config já está no `.env` do repositório (projeto `fera-bfdbb`). Pra outro projeto, troque ali:
 ```
 EXPO_PUBLIC_FIREBASE_API_KEY=...
 EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN=fera-app.firebaseapp.com
@@ -49,8 +49,8 @@ npx expo start --clear    # --clear: o Expo embute as variáveis no build e guar
 ```
 Abra no **Expo Go**, faça o onboarding e mande uma foto do caderno. Em **Perfil → ⚙️ → Geração por IA** aparece "Grátis · Gemini".
 
-### 1.5 Site (GitHub Pages) usando o Firebase
-No GitHub: **Settings → Secrets and variables → Actions → Variables** e crie `FIREBASE_API_KEY`, `FIREBASE_AUTH_DOMAIN`, `FIREBASE_PROJECT_ID`, `FIREBASE_STORAGE_BUCKET`, `FIREBASE_MESSAGING_SENDER_ID`, `FIREBASE_APP_ID`. O próximo push na `main` publica o site já ligado.
+### 1.5 Site (GitHub Pages)
+O site é gerado com o mesmo `.env`, então já sai ligado ao Firebase a cada push na `main`.
 
 ### Limites do grátis
 - O nível grátis do Gemini tem limite **por projeto** (por minuto e por dia). Uma prova usa ~3 pedidos + 1 por formato. Serve pra testar com poucas pessoas; pra abrir pro público, ative o faturamento (o Flash pago custa centavos por prova).

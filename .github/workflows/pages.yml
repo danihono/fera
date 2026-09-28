@@ -29,18 +29,8 @@ jobs:
       - run: npm run test:ia
       - name: Cloud Functions compilam
         run: npm --prefix functions ci && npm --prefix functions run typecheck && npm --prefix functions run build
-      # Firebase do site: variáveis do repositório (Settings → Secrets and variables → Actions → Variables).
-      # Sem elas o site abre em modo demonstração. A config web do Firebase é pública; as chaves de IA nunca vêm pra cá.
+      # A config do Firebase vem do .env do repositório (é pública).
       - run: npx expo export --platform web
-        env:
-          EXPO_PUBLIC_FIREBASE_API_KEY: ${{ vars.FIREBASE_API_KEY }}
-          EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN: ${{ vars.FIREBASE_AUTH_DOMAIN }}
-          EXPO_PUBLIC_FIREBASE_PROJECT_ID: ${{ vars.FIREBASE_PROJECT_ID }}
-          EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET: ${{ vars.FIREBASE_STORAGE_BUCKET }}
-          EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: ${{ vars.FIREBASE_MESSAGING_SENDER_ID }}
-          EXPO_PUBLIC_FIREBASE_APP_ID: ${{ vars.FIREBASE_APP_ID }}
-          EXPO_PUBLIC_IA_QUALIDADE: ${{ vars.IA_QUALIDADE }}
-          EXPO_PUBLIC_GEMINI_MODELO: ${{ vars.GEMINI_MODELO }}
       # Site: /fera/ = moldura de celular (web/index.html) e /fera/app/ = o app (baseUrl /fera/app).
       # _expo/ começa com "_": sem .nojekyll o Pages ignora a pasta.
       # 404.html = index do app, para as rotas do Expo Router abrirem direto.

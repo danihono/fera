@@ -5,9 +5,9 @@ import { BoltIcon, FireIcon, HeartIcon } from './icons';
 type Props =
   | { kind: 'streak'; value: number }
   | { kind: 'xp'; value: number }
-  | { kind: 'lives'; value: number };
+  | { kind: 'lives'; value: number | '∞' };
 
-const fmt = (n: number) => n.toLocaleString('pt-BR');
+const fmt = (n: number | string) => (typeof n === 'number' ? n.toLocaleString('pt-BR') : n);
 
 /** Chips do topo da Início: streak, XP e vidas (altura 40, borda 2px). */
 export function StatPill(props: Props) {
@@ -16,7 +16,9 @@ export function StatPill(props: Props) {
       ? `Sequência de ${props.value} dias`
       : props.kind === 'xp'
         ? `${fmt(props.value)} XP`
-        : `${props.value} vidas`;
+        : props.value === '∞'
+          ? 'Vidas infinitas'
+          : `${props.value} vidas`;
 
   return (
     <View style={styles.pill} accessible accessibilityLabel={label}>

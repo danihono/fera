@@ -51,6 +51,7 @@ export const colors = {
   textMuted: '#756A69', // texto secundário (ajuste AA)
   iconMuted: '#8A7F7E', // ícones inativos, fechar
   canvas: '#F4EEEC', // fundo atrás do app no web
+  dragShadow: 'rgba(42, 31, 31, 0.18)', // sombra da palavra sendo arrastada (Lacuna)
   scrim: 'rgba(42, 31, 31, 0.4)', // fundo escurecido atrás de bottom sheets (text a 40%)
 } as const;
 

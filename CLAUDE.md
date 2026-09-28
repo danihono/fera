@@ -40,6 +40,20 @@ App de estudos gamificado (iOS + Android) com o mascote Rugi. Expo SDK 57, TypeS
 
 A aba Provas ainda não tem design.
 
+### Telas extras (prévia, sem design no canvas)
+
+Montadas só com o design system para dar uma ideia do app completo — substituir quando houver design:
+
+| Tela | Rota | Entrada |
+| --- | --- | --- |
+| Provas (aba) | `src/app/(tabs)/provas.tsx` | tab bar |
+| Configurações | `src/app/configuracoes.tsx` | engrenagem do Perfil |
+| Todas as conquistas | `src/app/conquistas.tsx` | "Ver todas" do Perfil |
+| Trocar/entrar em turma | sheets em `src/app/(tabs)/turma.tsx` | seletor de turma |
+
+Também são prévia: preços do Fera+ (compra simulada), atalhos "Prévias" nas Configurações (Streak e Véspera), troféu do Dia D → Véspera, textos das sheets (`InfoSheet`).
+O estado do app (matéria/data do onboarding, XP, Fera+, turma, nome) fica em memória em `src/data/store.ts` e volta ao padrão ao recarregar.
+
 Dados de exemplo (iguais aos do design) ficam em `src/data/` até o Firebase entrar. Animações em loop usam `useLoop` / `kf` / `pingPong` de `src/lib/anim.ts`; curvas de easing ficam fora do componente (se mudarem de identidade a cada render, a animação reinicia).
 
 Medidas de elementos com `border` e `height` **sem** `box-sizing: border-box` no `.dc.html` somam a borda à altura (ex.: pílula 64 + 2 × 2 = 68). Botões (`<button>`) já são border-box.

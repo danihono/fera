@@ -1,44 +1,25 @@
 // 12 · Perfil — canvas artboard Perfil.dc.html
 import { router } from 'expo-router';
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import {
-  BoltIcon,
-  ClipboardCheckIcon,
-  CrownIcon,
-  ExamsFilledIcon,
-  FireIcon,
-  GearIcon,
-  PodiumFilledIcon,
-  StarIcon,
-  SunIcon,
-  TargetIcon,
-} from '@/components/icons';
+import { BoltIcon, ExamsFilledIcon, FireIcon, GearIcon } from '@/components/icons';
+import { InfoSheet } from '@/components/InfoSheet';
+import { MedalGrid } from '@/components/Medal';
 import { ProgressBar } from '@/components/ProgressBar';
-import { TapScale } from '@/components/TapScale';
+import { CONQUISTAS, type Conquista } from '@/data/conquistas';
+import { useApp } from '@/data/store';
 import { mockUser } from '@/data/mock';
 import { colors, fonts, radius, sizes, solidShadow, space, type } from '@/theme';
 
 const fmt = (n: number) => n.toLocaleString('pt-BR');
 
-const MEDALS: { label: string; icon: ReactNode; locked?: boolean }[] = [
-  { label: '1ª missão', icon: <StarIcon size={28} color={colors.white} /> },
-  { label: '7 dias', icon: <FireIcon size={28} core={false} fill={colors.white} /> },
-  { label: 'Zero erros', icon: <TargetIcon size={28} color={colors.white} /> },
-  { label: 'Top 3', icon: <PodiumFilledIcon size={28} color={colors.white} /> },
-  { label: 'Madrugador', icon: <SunIcon size={28} color={colors.white} /> },
-  { label: '30 dias', icon: <FireIcon size={28} core={false} fill={colors.lockedFill} />, locked: true },
-  { label: 'Simulado', icon: <ClipboardCheckIcon size={28} color={colors.lockedIcon} />, locked: true },
-  { label: 'Lenda', icon: <CrownIcon width={30} height={30} color={colors.lockedFill} base={null} />, locked: true },
-];
-const MEDAL_ROWS = [MEDALS.slice(0, 4), MEDALS.slice(4)];
-const LOCKED_NAMES: Record<string, string> = { Simulado: 'Simulado ENEM' };
-
 export default function Perfil() {
   const insets = useSafeAreaInsets();
   const u = mockUser;
+  const { nome, premium } = useApp();
   const faltam = u.xpProximoNivel - u.xpNivel;
+  const [medalha, setMedalha] = useState<Conquista | null>(null);
 
   return (
     <ScrollView
@@ -57,9 +38,9 @@ export default function Perfil() {
               { boxShadow: pressed ? 'none' : solidShadow(colors.redDeep, 3), transform: [{ translateY: pressed ? 3 : 0 }] },
             ]}
           >
-            <Text style={styles.plusText}>Fera+</Text>
+            <Text style={styles.plusText}>{premium ? 'Fera+ ✓' : 'Fera+'}</Text>
           </Pressable>
-          <Pressable accessibilityRole="button" accessibilityLabel="Configurações" style={styles.gear}>
+          <Pressable accessibilityRole="button" accessibilityLabel="Configurações" onPress={() => router.push('/configuracoes')} style={styles.gear}>
             <GearIcon size={22} color={colors.text} />
           </Pressable>
         </View>
@@ -68,14 +49,14 @@ export default function Perfil() {
       <View style={styles.identity}>
         <View>
           <View style={styles.avatar}>
-            <Text style={styles.avatarText}>{u.inicial}</Text>
+            <Text style={styles.avatarText}>{nome.trim().charAt(0).toUpperCase() || u.inicial}</Text>
           </View>
           <View style={styles.levelBadge}>
             <Text style={styles.levelBadgeText}>{u.nivel}</Text>
           </View>
         </View>
         <View style={styles.identityTexts}>
-          <Text style={styles.name}>{u.nome}</Text>
+          <Text style={styles.name}>{nome}</Text>
           <Text style={styles.handle}>
             {u.usuario} · {u.turma}
           </Text>
@@ -104,29 +85,24 @@ export default function Perfil() {
 
       <View style={styles.sectionRow}>
         <Text style={styles.sectionTitle}>Conquistas</Text>
-        <Pressable accessibilityRole="link" style={styles.seeAll}>
+        <Pressable accessibilityRole="link" onPress={() => router.push('/conquistas')} style={styles.seeAll}>
           <Text style={styles.seeAllText}>Ver todas</Text>
         </Pressable>
       </View>
 
       <View style={styles.medals}>
-        {MEDAL_ROWS.map((row, r) => (
-          <View key={r} style={styles.medalRow}>
-            {row.map((m) => (
-              <TapScale
-                key={m.label}
-                scale={0.92}
-                accessibilityRole="button"
-                accessibilityLabel={m.locked ? `${LOCKED_NAMES[m.label] ?? m.label}, bloqueada` : m.label}
-                style={styles.medal}
-              >
-                <View style={[styles.medalCircle, m.locked && styles.medalLocked]}>{m.icon}</View>
-                <Text style={[styles.medalLabel, m.locked && { color: colors.textMuted }]}>{m.label}</Text>
-              </TapScale>
-            ))}
-          </View>
-        ))}
+        <MedalGrid items={CONQUISTAS.slice(0, 8)} onPress={setMedalha} />
       </View>
+
+      {medalha && (
+        <InfoSheet
+          mood={medalha.bloqueada ? 'pensativo' : 'trofeu'}
+          title={medalha.nomeLongo ?? medalha.nome}
+          text={medalha.bloqueada ? `Bloqueada. ${medalha.descricao}` : medalha.descricao}
+          button={medalha.bloqueada ? 'Bora conseguir' : 'Show!'}
+          onClose={() => setMedalha(null)}
+        />
+      )}
     </ScrollView>
   );
 }
@@ -210,20 +186,5 @@ const styles = StyleSheet.create({
   sectionTitle: { fontFamily: fonts.nunito900, fontSize: 20, color: colors.text },
   seeAll: { minHeight: 44, justifyContent: 'center' },
   seeAllText: { fontFamily: fonts.nunito800, fontSize: 15, color: colors.redText },
-  medals: { marginTop: 4, gap: 12 },
-  medalRow: { flexDirection: 'row', gap: 8 },
-  medal: { flex: 1, alignItems: 'center', gap: 6 },
-  medalCircle: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: colors.red,
-    borderWidth: 4,
-    borderColor: colors.redSoft,
-    boxShadow: solidShadow(colors.redDeep),
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  medalLocked: { backgroundColor: colors.border, borderWidth: 0, boxShadow: solidShadow(colors.locked) },
-  medalLabel: { fontFamily: fonts.nunito800, fontSize: 12, lineHeight: 14.4, textAlign: 'center', color: colors.text },
+  medals: { marginTop: 4 },
 });

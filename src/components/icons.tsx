@@ -1,4 +1,5 @@
 // Ícones copiados 1:1 dos SVGs do canvas (traço 2.5, pontas arredondadas).
+import { useId } from 'react';
 import Svg, { Circle, Defs, Ellipse, G, LinearGradient, Path, Rect, Stop } from 'react-native-svg';
 import { colors } from '@/theme';
 
@@ -75,7 +76,9 @@ const FLAME_CORE = 'M12 12.6c1.3 1.3 2.5 2.5 2.1 4.3-.3 1.3-1.2 2-2.1 2s-1.9-.7-
  * `core={false}` tira o miolo (02c); `fill` troca o gradiente por uma cor lisa (branca no card da Fim, cinza apagada na Streak).
  */
 export function FireIcon({ size = 24, core = true, fill, coreFill = colors.fireCore }: { size?: number; core?: boolean; fill?: string; coreFill?: string }) {
-  const id = fill ? undefined : `fire-${core ? 'c' : 'n'}`;
+  // id único por ícone: com várias telas montadas, um id repetido faz o url(#id) apontar pra uma tela escondida.
+  const uid = useId().replace(/:/g, '');
+  const id = fill ? undefined : `fire-${uid}`;
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24">
       {id && (
@@ -434,6 +437,49 @@ export function SparkleIcon({ size = 18, color = colors.red }: StrokeIconProps) 
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24">
       <Path d="M12 2c.8 4.5 2.7 6.9 8 10-5.3 3.1-7.2 5.5-8 10-.8-4.5-2.7-6.9-8-10 5.3-3.1 7.2-5.5 8-10z" fill={color} />
+    </Svg>
+  );
+}
+
+// Configurações (extra, fora do design).
+export function BellIcon({ size = 22, color = colors.red }: StrokeIconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+      <Path d="M6 16.5V11a6 6 0 0 1 12 0v5.5l1.5 2h-15zM10 20.5a2 2 0 0 0 4 0" />
+    </Svg>
+  );
+}
+
+export function SoundIcon({ size = 22, color = colors.red }: StrokeIconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+      <Path d="M4.5 9.5h3l4.5-4v13l-4.5-4h-3zM16 9a4 4 0 0 1 0 6M18.5 6.5a7.5 7.5 0 0 1 0 11" />
+    </Svg>
+  );
+}
+
+export function HelpIcon({ size = 22, color = colors.red }: StrokeIconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+      <Circle cx={12} cy={12} r={8.5} />
+      <Path d="M9.8 9.5a2.3 2.3 0 0 1 4.4 1c0 1.5-2.2 2-2.2 3.5M12 17h.01" />
+    </Svg>
+  );
+}
+
+export function LogoutIcon({ size = 22, color = colors.red }: StrokeIconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+      <Path d="M14 4.5H6.5A1.5 1.5 0 0 0 5 6v12a1.5 1.5 0 0 0 1.5 1.5H14M10 12h10M16.5 8.5 20 12l-3.5 3.5" />
+    </Svg>
+  );
+}
+
+export function UserIcon({ size = 22, color = colors.red }: StrokeIconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+      <Circle cx={12} cy={8.5} r={4} />
+      <Path d="M4.5 20.5c.8-4 3.9-6.2 7.5-6.2s6.7 2.2 7.5 6.2" />
     </Svg>
   );
 }

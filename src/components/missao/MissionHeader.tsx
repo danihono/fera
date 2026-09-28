@@ -4,14 +4,14 @@ import { ProgressBar } from '@/components/ProgressBar';
 import { colors, fonts, sizes } from '@/theme';
 
 /** Topo da missão: sair (X), progresso e vidas. */
-export function MissionHeader({ progress, lives, onClose }: { progress: number; lives: number; onClose: () => void }) {
+export function MissionHeader({ progress, lives, onClose }: { progress: number; lives: number | '∞'; onClose: () => void }) {
   return (
     <View style={styles.row}>
       <Pressable accessibilityRole="button" accessibilityLabel="Sair da missão" onPress={onClose} style={styles.close}>
         <CloseIcon size={24} strokeWidth={3} color={colors.iconMuted} />
       </Pressable>
       <ProgressBar progress={progress} accessibilityLabel="Progresso da missão" />
-      <View style={styles.lives} accessible accessibilityLabel={`${lives} vidas`}>
+      <View style={styles.lives} accessible accessibilityLabel={lives === '∞' ? 'Vidas infinitas' : `${lives} vidas`}>
         <HeartIcon size={24} shine={false} />
         <Text style={styles.livesText}>{lives}</Text>
       </View>

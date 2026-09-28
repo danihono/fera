@@ -12,6 +12,7 @@ import type { Result } from '@/components/missao/types';
 import { VFQuestion } from '@/components/missao/VFQuestion';
 import { mockMissao, TAGS, XP_BONUS_MISSAO, XP_POR_ACERTO, type Question } from '@/data/missao';
 import { mockUser } from '@/data/mock';
+import { app, useApp } from '@/data/store';
 import { colors, fonts, radius, sizes, space } from '@/theme';
 
 type Answer = number | boolean | (number | null)[] | null;
@@ -41,6 +42,7 @@ export default function Missao() {
   const q = missao.questoes[index];
   const [answer, setAnswer] = useState<Answer>(() => emptyAnswer(q));
   const [result, setResult] = useState<Result>(null);
+  const { premium } = useApp();
   const [lives, setLives] = useState(mockUser.lives);
   const [acertos, setAcertos] = useState(0);
 
@@ -48,7 +50,7 @@ export default function Missao() {
     const ok = isCorrect(q, answer);
     setResult(ok ? 'correct' : 'wrong');
     if (ok) setAcertos((n) => n + 1);
-    else setLives((n) => Math.max(0, n - 1));
+    else if (!premium) setLives((n) => Math.max(0, n - 1)); // Fera+: vidas infinitas
   };
 
   const continuar = () => {
@@ -60,6 +62,7 @@ export default function Missao() {
       return;
     }
     const xp = acertos * XP_POR_ACERTO + XP_BONUS_MISSAO;
+    app.addXp(xp);
     router.replace({
       pathname: '/missao/fim',
       params: { id: id ?? String(missao.numero), xp: String(xp), precisao: String(Math.round((acertos / total) * 100)) },
@@ -71,7 +74,7 @@ export default function Missao() {
 
   return (
     <View style={[styles.screen, { paddingTop: insets.top + sizes.topExtra, paddingBottom: Math.max(insets.bottom, sizes.bottomExtra) + sizes.bottomExtra - sizes.shadow }]}>
-      <MissionHeader progress={progress} lives={lives} onClose={() => router.back()} />
+      <MissionHeader progress={progress} lives={premium ? '∞' : lives} onClose={() => router.back()} />
 
       <View style={styles.tag}>
         <Text style={styles.tagText}>{TAGS[q.kind]}</Text>

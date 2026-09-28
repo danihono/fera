@@ -15,7 +15,7 @@ import {
 } from '@/components/icons';
 import { Rugi } from '@/components/Rugi';
 import { SquareButton } from '@/components/SquareButton';
-import { mockProva } from '@/data/mock';
+import { useApp } from '@/data/store';
 import { shortDate } from '@/lib/dates';
 import { colors, fonts, radius, sizes, solidShadow, space, type } from '@/theme';
 
@@ -24,6 +24,7 @@ const CURRENT = 2;
 
 export default function NovaProva() {
   const insets = useSafeAreaInsets();
+  const { prova } = useApp();
   const gerar = () => router.push('/prova/gerando');
 
   return (
@@ -63,12 +64,12 @@ export default function NovaProva() {
 
       <View style={styles.chips}>
         <View style={styles.chip}>
-          <SubjectIcon subject="matematica" size={18} color={colors.red} />
-          <Text style={styles.chipText}>{mockProva.materia}</Text>
+          <SubjectIcon subject={prova.icone} size={18} color={colors.red} />
+          <Text style={styles.chipText}>{prova.materia}</Text>
         </View>
         <View style={styles.chip}>
           <CalendarIcon size={18} color={colors.red} />
-          <Text style={styles.chipText}>{shortDate(mockProva.data)}</Text>
+          <Text style={styles.chipText}>{shortDate(prova.data)}</Text>
         </View>
       </View>
 

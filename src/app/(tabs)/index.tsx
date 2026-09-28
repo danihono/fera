@@ -15,12 +15,13 @@ import Animated, {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 import { CheckIcon, LockIcon, StarIcon, TrophyIcon } from '@/components/icons';
+import { ProvaCard } from '@/components/ProvaCard';
 import { Rugi } from '@/components/Rugi';
 import { StatPill } from '@/components/StatPill';
 import { mockProva, mockUser } from '@/data/mock';
+import { diasAte, useApp } from '@/data/store';
 import { colors, fonts, radius, sizes, solidShadow, space } from '@/theme';
 
-const WEEKDAYS = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB'];
 
 // A trilha é desenhada em coordenadas absolutas da tela base (390 de largura).
 // TRAIL_TOP é onde o card da prova termina (112 + 146); tudo abaixo é posicionado a partir daí.
@@ -35,8 +36,8 @@ export default function Inicio() {
   // Telas mais estreitas que 390 encolhem a trilha inteira em vez de cortar as bordas.
   const scale = Math.min(1, width / BASE_WIDTH);
 
-  const p = mockProva;
-  const progress = p.missoesFeitas / p.missoesTotal;
+  const { prova, xp, premium } = useApp();
+  const p = mockProva; // progresso da trilha (exemplo)
 
   // ring / ring2: 1.6s ease-out infinito, o segundo com 0.8s de atraso. bob: 2s ease-in-out.
   const ring1 = useSharedValue(0);
@@ -59,40 +60,19 @@ export default function Inicio() {
     >
       <View style={styles.stats}>
         <StatPill kind="streak" value={mockUser.streak} />
-        <StatPill kind="xp" value={mockUser.xp} />
-        <StatPill kind="lives" value={mockUser.lives} />
+        <StatPill kind="xp" value={xp} />
+        <StatPill kind="lives" value={premium ? '∞' : mockUser.lives} />
       </View>
 
-      <View style={styles.card}>
-        <Svg width={140} height={146} viewBox="0 0 140 146" style={styles.cardStripes}>
-          <Path d="M140 10 C 110 12 92 26 84 44 C 104 34 122 32 140 36 Z" fill={colors.redStripe} />
-          <Path d="M140 62 C 116 62 100 74 94 90 C 110 82 126 80 140 84 Z" fill={colors.redStripe} />
-          <Path d="M140 112 C 120 112 108 122 104 134 C 116 128 128 127 140 130 Z" fill={colors.redStripe} />
-        </Svg>
-        <View style={styles.cardTop}>
-          <View style={styles.cardTexts}>
-            <Text style={styles.cardKicker}>Prova de {p.materia}</Text>
-            <Text style={styles.cardDays}>em {p.diasFaltando} dias</Text>
-            <Text style={styles.cardTopic}>{p.topico}</Text>
-          </View>
-          <View style={styles.dateBox}>
-            <Text style={styles.dateWeekday}>{WEEKDAYS[p.data.getDay()]}</Text>
-            <Text style={styles.dateDay}>{p.data.getDate()}</Text>
-          </View>
-        </View>
-        <View style={styles.progressRow}>
-          <View
-            style={styles.track}
-            accessibilityRole="progressbar"
-            accessibilityValue={{ min: 0, max: p.missoesTotal, now: p.missoesFeitas }}
-          >
-            <View style={[styles.fill, { width: `${progress * 100}%` }]} />
-          </View>
-          <Text style={styles.progressLabel}>
-            {p.missoesFeitas} de {p.missoesTotal}
-          </Text>
-        </View>
-      </View>
+      <ProvaCard
+        style={styles.card}
+        materia={prova.materia}
+        topico={prova.topico}
+        data={prova.data}
+        dias={diasAte(prova.data)}
+        feitas={p.missoesFeitas}
+        total={p.missoesTotal}
+      />
 
       <View style={{ height: TRAIL_HEIGHT * scale, alignItems: 'center' }}>
         <View style={[styles.trail, { transform: [{ scale }] }]}>
@@ -134,9 +114,9 @@ export default function Inicio() {
           <LockedNode style={at(200, 542)} label="Missão 4, bloqueada" />
           <LockedNode style={at(120, 618)} label="Missão 5, bloqueada" />
 
-          <View style={[styles.examDay, at(236, 660)]} accessible accessibilityLabel="Dia da prova">
+          <Pressable style={[styles.examDay, at(236, 660)]} accessibilityRole="button" accessibilityLabel="Dia da prova" onPress={() => router.push('/vespera/1')}>
             <TrophyIcon size={36} color={colors.red} />
-          </View>
+          </Pressable>
           <View style={[styles.dDay, at(316, 682)]}>
             <Text style={styles.dDayText}>Dia D</Text>
           </View>
@@ -211,36 +191,7 @@ const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.white },
   content: { paddingHorizontal: space.gutter },
   stats: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  card: {
-    marginTop: 14,
-    height: 146,
-    borderRadius: radius.card,
-    backgroundColor: colors.red,
-    boxShadow: solidShadow(colors.redDeep),
-    padding: 18,
-    overflow: 'hidden',
-    gap: 14,
-  },
-  cardStripes: { position: 'absolute', right: 0, top: 0 },
-  cardTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
-  cardTexts: { gap: 2 },
-  cardKicker: { fontFamily: fonts.nunito800, fontSize: 15, color: colors.white },
-  cardDays: { fontFamily: fonts.fredoka700, fontSize: 36, lineHeight: 38, color: colors.white },
-  cardTopic: { fontFamily: fonts.nunito700, fontSize: 13, color: colors.white },
-  dateBox: {
-    width: 70,
-    height: 76,
-    borderRadius: 18,
-    backgroundColor: colors.white,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  dateWeekday: { fontFamily: fonts.nunito900, fontSize: 12, letterSpacing: 1, color: colors.redText },
-  dateDay: { fontFamily: fonts.fredoka700, fontSize: 30, lineHeight: 30, color: colors.text },
-  progressRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  track: { flex: 1, height: 12, borderRadius: radius.pill, backgroundColor: colors.redDeep, overflow: 'hidden' },
-  fill: { height: 12, borderRadius: radius.pill, backgroundColor: colors.white, boxShadow: `inset 0px -3px 0px ${colors.progressShade}` },
-  progressLabel: { fontFamily: fonts.nunito800, fontSize: 13, color: colors.white },
+  card: { marginTop: 14 },
   trail: { width: BASE_WIDTH, height: TRAIL_HEIGHT, transformOrigin: 'top' },
   tag: { height: 28, paddingHorizontal: 12, borderRadius: radius.pill, justifyContent: 'center' },
   tagText: { fontFamily: fonts.nunito800, fontSize: 13 },

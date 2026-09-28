@@ -1,12 +1,17 @@
 // 10 · Turma (ranking) — canvas artboard Turma.dc.html
 import * as Clipboard from 'expo-clipboard';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Pressable, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withDelay, withTiming } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ChevronDownIcon, CopyIcon, CrownIcon, ShareIcon } from '@/components/icons';
+import { BottomSheet } from '@/components/BottomSheet';
+import { FeraButton } from '@/components/FeraButton';
+import { CheckIcon, ChevronDownIcon, CopyIcon, CrownIcon, ShareIcon } from '@/components/icons';
+import { InfoSheet } from '@/components/InfoSheet';
+import { TextInputSheet } from '@/components/TextInputSheet';
 import { StatPill } from '@/components/StatPill';
-import { mockProva, mockTurma, mockUser, type Colega } from '@/data/mock';
+import { mockTurma, mockUser, type Colega } from '@/data/mock';
+import { app, useApp } from '@/data/store';
 import { shortDate } from '@/lib/dates';
 import { colors, fonts, radius, sizes, solidShadow, space, type } from '@/theme';
 
@@ -23,6 +28,8 @@ const PODIUM = [
 export default function Turma() {
   const insets = useSafeAreaInsets();
   const t = mockTurma;
+  const { prova, xp, turma, turmas, premium } = useApp();
+  const [sheet, setSheet] = useState<null | 'turmas' | 'codigo' | 'copiado'>(null);
   const resto = t.ranking.slice(3);
 
   return (
@@ -33,18 +40,18 @@ export default function Turma() {
     >
       <View style={styles.stats}>
         <StatPill kind="streak" value={mockUser.streak} />
-        <StatPill kind="xp" value={mockUser.xp} />
-        <StatPill kind="lives" value={mockUser.lives} />
+        <StatPill kind="xp" value={xp} />
+        <StatPill kind="lives" value={premium ? '∞' : mockUser.lives} />
       </View>
 
       <View style={styles.titleRow}>
         <Text style={styles.title}>Turma</Text>
-        <Pressable accessibilityRole="button" style={styles.classPicker}>
-          <Text style={styles.classText}>{t.nome}</Text>
+        <Pressable accessibilityRole="button" onPress={() => setSheet('turmas')} style={styles.classPicker}>
+          <Text style={styles.classText}>{turma}</Text>
           <ChevronDownIcon size={16} color={colors.textMuted} />
         </Pressable>
       </View>
-      <Text style={styles.subtitle}>Ranking até a prova · {shortDate(mockProva.data).toLowerCase()}</Text>
+      <Text style={styles.subtitle}>Ranking até a prova · {shortDate(prova.data).toLowerCase()}</Text>
 
       {/* O pódio tem 222 de altura, mas o conteúdo é mais alto e desce por cima da lista (como no design). */}
       <View style={styles.podium}>
@@ -88,7 +95,7 @@ export default function Turma() {
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={`Copiar código da sala ${t.codigo}`}
-          onPress={() => Clipboard.setStringAsync(t.codigo)}
+          onPress={() => Clipboard.setStringAsync(t.codigo).then(() => setSheet('copiado'))}
           style={styles.code}
         >
           <Text style={styles.codeText}>{t.codigo}</Text>
@@ -106,6 +113,54 @@ export default function Turma() {
           <Text style={styles.inviteText}>Convidar a turma</Text>
         </Pressable>
       </View>
+
+      {sheet === 'turmas' && (
+        <BottomSheet onClose={() => setSheet((x) => (x === 'turmas' ? null : x))}>
+          {(close) => (
+            <>
+              <Text style={styles.sheetTitle}>Suas turmas</Text>
+              <View>
+                {turmas.map((nome) => {
+                  const on = nome === turma;
+                  return (
+                    <Pressable
+                      key={nome}
+                      accessibilityRole="radio"
+                      accessibilityState={{ checked: on }}
+                      onPress={() => close(() => app.setTurma(nome))}
+                      style={styles.turmaRow}
+                    >
+                      <View style={[styles.radio, on && styles.radioOn]}>{on && <CheckIcon size={14} color={colors.white} />}</View>
+                      <Text style={[styles.turmaName, on && { color: colors.redText }]}>{nome}</Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+              <FeraButton label="Entrar em outra turma" variant="secondary" onPress={() => close(() => setSheet('codigo'))} />
+            </>
+          )}
+        </BottomSheet>
+      )}
+      {sheet === 'codigo' && (
+        <TextInputSheet
+          title="Código da turma"
+          placeholder="Ex.: FERA-72K"
+          autoCapitalize="characters"
+          maxLength={12}
+          button="Entrar"
+          onSubmit={(codigo) => app.entrarNaTurma(`Turma ${codigo.toUpperCase()}`)}
+          onClose={() => setSheet(null)}
+        />
+      )}
+      {sheet === 'copiado' && (
+        <InfoSheet
+          mood="comemorando"
+          title="Código copiado!"
+          text={`Manda o ${t.codigo} pra galera entrar na sala.`}
+          button="Beleza"
+          onClose={() => setSheet(null)}
+        />
+      )}
     </ScrollView>
   );
 }
@@ -240,5 +295,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 8,
   },
+  sheetTitle: { fontFamily: fonts.nunito800, fontSize: 20, color: colors.text },
+  turmaRow: { height: 56, flexDirection: 'row', alignItems: 'center', gap: 12 },
+  radio: { width: 26, height: 26, borderRadius: 13, borderWidth: sizes.borderWidth, borderColor: colors.border, alignItems: 'center', justifyContent: 'center' },
+  radioOn: { borderWidth: 0, backgroundColor: colors.red },
+  turmaName: { fontFamily: fonts.nunito800, fontSize: 16, color: colors.text },
   inviteText: { flexShrink: 1, textAlign: 'center', fontFamily: fonts.nunito900, fontSize: 15, letterSpacing: 0.4, textTransform: 'uppercase', color: colors.redText },
 });

@@ -55,3 +55,16 @@ export const mockVespera = {
     { nome: 'Coeficiente angular', erros: 1 },
   ],
 };
+
+// Aba Provas (sem design ainda — prévia): próximas e já feitas, além da prova atual.
+export const mockProvas = {
+  proximas: [
+    { materia: 'Português', icone: 'portugues', topico: 'Interpretação de texto', emDias: 17 },
+    { materia: 'História', icone: 'historia', topico: 'Revolução Francesa', emDias: 24 },
+  ],
+  feitas: [
+    { materia: 'Biologia', icone: 'biologia', topico: 'Citologia', nota: '9,0', quando: 'há 5 dias' },
+    { materia: 'Química', icone: 'quimica', topico: 'Tabela periódica', nota: '8,5', quando: 'há 2 semanas' },
+    { materia: 'Inglês', icone: 'ingles', topico: 'Simple past', nota: '10', quando: 'há 1 mês' },
+  ],
+} as const;

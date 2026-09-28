@@ -9,6 +9,7 @@ import { OnboardingHeader } from '@/components/onboarding/OnboardingHeader';
 import { OtherSubjectSheet } from '@/components/onboarding/OtherSubjectSheet';
 import { Rugi } from '@/components/Rugi';
 import { TapScale } from '@/components/TapScale';
+import { app, topicoDe } from '@/data/store';
 import { colors, fonts, radius, sizes, space, type } from '@/theme';
 
 type Subject = { id: string; label: string; icon: SubjectId };
@@ -109,7 +110,14 @@ export default function OnboardingMateria() {
         </TapScale>
       </ScrollView>
 
-      <FeraButton label="Continuar" onPress={() => router.push('/onboarding/data')} />
+      <FeraButton
+        label="Continuar"
+        onPress={() => {
+          const s = subjects.find((x) => x.id === selected);
+          if (s) app.setProva({ materia: s.label, icone: s.icon, topico: topicoDe(s.label) });
+          router.push('/onboarding/data');
+        }}
+      />
 
       {sheetOpen && <OtherSubjectSheet onSubmit={addSubject} onClose={() => setSheetOpen(false)} />}
     </View>

@@ -8,7 +8,9 @@ import Svg, { Circle, Path } from 'react-native-svg';
 import { FeraButton } from '@/components/FeraButton';
 import { BanIcon, BookWaveIcon, ClipboardCheckIcon, CloseIcon, HeartWaveIcon, SparkleIcon } from '@/components/icons';
 import { Rugi } from '@/components/Rugi';
+import { InfoSheet } from '@/components/InfoSheet';
 import { TapScale } from '@/components/TapScale';
+import { app, useApp } from '@/data/store';
 import { pingPong, useLoop } from '@/lib/anim';
 import { colors, fonts, radius, sizes, solidShadow, space } from '@/theme';
 
@@ -19,15 +21,17 @@ const BENEFITS: { icon: ReactNode; text: string }[] = [
   { icon: <BanIcon size={24} color={colors.red} />, text: 'Sem anúncios' },
 ];
 
-// Preços ainda não definidos: o design usa marcadores.
+// Preços de exemplo (o design usa marcadores): 12 × 19,90 = 238,80 → anual 149,90 economiza 37%.
 const PLANS = [
-  { id: 'mensal', name: 'Mensal', price: 'R$ [valor]', note: 'por mês' },
-  { id: 'anual', name: 'Anual', price: 'R$ [valor]', note: 'economiza [X]%', badge: 'MAIS ESCOLHIDO' },
+  { id: 'mensal', name: 'Mensal', price: 'R$ 19,90', note: 'por mês' },
+  { id: 'anual', name: 'Anual', price: 'R$ 149,90', note: 'economiza 37%', badge: 'MAIS ESCOLHIDO' },
 ] as const;
 
 export default function Premium() {
   const insets = useSafeAreaInsets();
   const [plan, setPlan] = useState<(typeof PLANS)[number]['id']>('anual');
+  const { premium } = useApp();
+  const [sheet, setSheet] = useState<null | 'comprou' | 'restaurar'>(null);
 
   // crown 2.2s · twinkle 1.8s (atrasos 0 / .6s / 1.2s)
   const crown = useLoop(2200);
@@ -48,7 +52,7 @@ export default function Premium() {
         <Pressable accessibilityRole="button" accessibilityLabel="Fechar" onPress={() => router.back()} style={styles.close}>
           <CloseIcon size={24} strokeWidth={3} color={colors.iconMuted} />
         </Pressable>
-        <Pressable accessibilityRole="button" style={styles.restore}>
+        <Pressable accessibilityRole="button" onPress={() => setSheet('restaurar')} style={styles.restore}>
           <Text style={styles.restoreText}>Restaurar compra</Text>
         </Pressable>
       </View>
@@ -115,7 +119,31 @@ export default function Premium() {
       </View>
 
       <View style={{ flex: 1 }} />
-      <FeraButton label="Quero ser Fera+" onPress={() => router.back()} />
+      <FeraButton label={premium ? 'Você já é Fera+' : 'Quero ser Fera+'} disabled={premium} onPress={() => setSheet('comprou')} />
+
+      {/* Prévia: sem pagamento de verdade ainda. */}
+      {sheet === 'comprou' && (
+        <InfoSheet
+          mood="comemorando"
+          title="Agora você é Fera+!"
+          text={`Plano ${plan === 'anual' ? 'anual' : 'mensal'} ativado. Isto é uma prévia: nenhuma cobrança foi feita.`}
+          button="Bora!"
+          onConfirm={() => {
+            app.setPremium(true);
+            router.back();
+          }}
+          onClose={() => setSheet(null)}
+        />
+      )}
+      {sheet === 'restaurar' && (
+        <InfoSheet
+          mood={premium ? 'comemorando' : 'pensativo'}
+          title={premium ? 'Tudo certo!' : 'Nada pra restaurar'}
+          text={premium ? 'Sua assinatura Fera+ já está ativa.' : 'Não achamos nenhuma compra nessa conta.'}
+          button="Entendi"
+          onClose={() => setSheet(null)}
+        />
+      )}
     </View>
   );
 }

@@ -7,6 +7,7 @@ import { ChevronLeftIcon, ChevronRightIcon, FireIcon } from '@/components/icons'
 import { OnboardingHeader } from '@/components/onboarding/OnboardingHeader';
 import { Rugi } from '@/components/Rugi';
 import { TapScale } from '@/components/TapScale';
+import { app } from '@/data/store';
 import { goHome } from '@/lib/nav';
 import { colors, fonts, radius, sizes, solidShadow, space, type } from '@/theme';
 
@@ -77,6 +78,7 @@ export default function OnboardingData() {
   };
 
   const finish = () => {
+    app.setProva({ data: selected, minutosDia: minutes });
     goHome();
   };
 

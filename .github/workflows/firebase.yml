@@ -1,0 +1,46 @@
+# Publica no Firebase a cada push na main: o site no Hosting (https://fera-bfdbb.web.app)
+# e as regras do Firestore. Precisa do secret FIREBASE_SERVICE_ACCOUNT (JSON da conta de serviço;
+# veja docs/COMO-LIGAR.md). Sem ele, o workflow só avisa e não falha.
+name: Firebase
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: firebase
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+    steps:
+      - name: Tem a conta de serviço?
+        id: conta
+        run: |
+          if [ -z "$FIREBASE_SERVICE_ACCOUNT" ]; then
+            echo "::warning::Falta o secret FIREBASE_SERVICE_ACCOUNT — nada foi publicado no Firebase."
+            echo "ok=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ok=true" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/checkout@v4
+        if: steps.conta.outputs.ok == 'true'
+      - uses: actions/setup-node@v4
+        if: steps.conta.outputs.ok == 'true'
+        with:
+          node-version: 22
+          cache: npm
+      - if: steps.conta.outputs.ok == 'true'
+        run: npm ci
+      - if: steps.conta.outputs.ok == 'true'
+        run: ./scripts/build-hosting.sh
+      - name: Publicar Hosting e regras do Firestore
+        if: steps.conta.outputs.ok == 'true'
+        run: |
+          echo "$FIREBASE_SERVICE_ACCOUNT" > "$RUNNER_TEMP/conta.json"
+          export GOOGLE_APPLICATION_CREDENTIALS="$RUNNER_TEMP/conta.json"
+          npx -y firebase-tools@15 deploy --only hosting,firestore --project fera-bfdbb --non-interactive

@@ -51,11 +51,11 @@ Abra no **Expo Go**, faça o onboarding e mande uma foto do caderno. Em **Perfil
 
 ### 1.5 Site
 - **GitHub Pages:** https://danihono.github.io/fera/app/ (publica sozinho a cada push na `main`).
-- **Firebase Hosting:** https://fera-bfdbb.web.app — o workflow `.github/workflows/firebase.yml` publica o site **e as regras do Firestore** a cada push na `main`. Pra ele funcionar, uma vez só:
-  1. Console do Firebase → ⚙️ Configurações do projeto → **Contas de serviço** → **Gerar nova chave privada** (baixa um `.json`).
-  2. No GitHub: **Settings → Secrets and variables → Actions → New repository secret**, nome `FIREBASE_SERVICE_ACCOUNT`, cole o conteúdo inteiro do `.json`. Depois apague o arquivo do computador.
-  3. Em **Actions → Firebase → Run workflow** (ou faça qualquer push).
-- Na mão: `./scripts/build-hosting.sh && firebase deploy --only hosting,firestore`.
+- **Firebase Hosting:** https://fera-bfdbb.web.app — publicado do seu computador:
+  ```bash
+  npm run build:hosting
+  firebase deploy --only hosting,firestore
+  ```
 
 ### Limites do grátis
 - O nível grátis do Gemini tem limite **por projeto** (por minuto e por dia). Uma prova usa ~3 pedidos + 1 por formato. Serve pra testar com poucas pessoas; pra abrir pro público, ative o faturamento (o Flash pago custa centavos por prova).

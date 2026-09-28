@@ -50,7 +50,8 @@
     "test": "npm run test:ia",
     "test:ia": "tsx --test tests/ia.test.ts",
     "test:emuladores": "npm --prefix functions run build && firebase emulators:exec --only auth,firestore,functions --project demo-fera \"tsx --test tests/emuladores.test.ts\"",
-    "emuladores": "npm --prefix functions run build && firebase emulators:start --only auth,firestore,functions,storage --project demo-fera"
+    "emuladores": "npm --prefix functions run build && firebase emulators:start --only auth,firestore,functions,storage --project demo-fera",
+    "build:hosting": "node scripts/build-hosting.js"
   },
   "private": true
 }

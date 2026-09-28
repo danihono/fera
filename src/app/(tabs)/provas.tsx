@@ -34,7 +34,7 @@ export default function Provas() {
       </View>
 
       <Text style={styles.section}>Agora</Text>
-      <Pressable accessibilityRole="link" onPress={() => router.navigate('/(tabs)')}>
+      <Pressable accessibilityRole="link" accessibilityLabel="Abrir materiais da prova" onPress={() => router.push('/prova/materiais')}>
         <ProvaCard
           materia={prova.materia}
           topico={prova.topico}

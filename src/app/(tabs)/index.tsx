@@ -64,15 +64,17 @@ export default function Inicio() {
         <StatPill kind="lives" value={premium ? '∞' : mockUser.lives} />
       </View>
 
-      <ProvaCard
-        style={styles.card}
-        materia={prova.materia}
-        topico={prova.topico}
-        data={prova.data}
-        dias={diasAte(prova.data)}
-        feitas={p.missoesFeitas}
-        total={p.missoesTotal}
-      />
+      {/* Tocar no card abre os materiais da prova (prévia fora do design). */}
+      <Pressable accessibilityRole="button" accessibilityLabel="Abrir materiais da prova" onPress={() => router.push('/prova/materiais')} style={styles.card}>
+        <ProvaCard
+          materia={prova.materia}
+          topico={prova.topico}
+          data={prova.data}
+          dias={diasAte(prova.data)}
+          feitas={p.missoesFeitas}
+          total={p.missoesTotal}
+        />
+      </Pressable>
 
       <View style={{ height: TRAIL_HEIGHT * scale, alignItems: 'center' }}>
         <View style={[styles.trail, { transform: [{ scale }] }]}>

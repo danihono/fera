@@ -43,9 +43,10 @@ export default function Configuracoes() {
     setInfo({
       mood: 'triste',
       title: 'Sair da conta?',
-      text: 'O Rugi vai sentir sua falta. Seu progresso fica salvo.',
+      text: 'O Rugi vai sentir sua falta. Nesta prévia, sair apaga o que ficou salvo no aparelho.',
       button: 'Sair',
       onConfirm: () => {
+        app.reset();
         if (router.canDismiss()) router.dismissAll();
         router.replace('/onboarding');
       },

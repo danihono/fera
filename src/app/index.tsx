@@ -15,6 +15,7 @@ import Animated, {
 import Svg, { Path } from 'react-native-svg';
 import { Ellipse } from '@/components/Ellipse';
 import { Rugi } from '@/components/Rugi';
+import { app } from '@/data/store';
 import { colors, fonts } from '@/theme';
 
 const HOP_MS = 1300;
@@ -25,7 +26,8 @@ export default function Splash() {
   const t = useSharedValue(0);
   useEffect(() => {
     t.value = withRepeat(withTiming(1, { duration: HOP_MS, easing: ease }), -1, false);
-    const timer = setTimeout(() => router.replace('/onboarding'), 2600);
+    // Quem já passou pelo onboarding vai direto pra trilha.
+    const timer = setTimeout(() => router.replace(app.get().onboarded ? '/(tabs)' : '/onboarding'), 2600);
     return () => clearTimeout(timer);
   }, [t]);
 

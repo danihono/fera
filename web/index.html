@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fera · Vira fera até o dia da prova</title>
+<link rel="icon" href="app/favicon.ico">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&family=Nunito:wght@700;800&display=swap" rel="stylesheet">
+<script>
+  // No celular, abre o app direto (sem moldura).
+  if (window.innerWidth < 600) location.replace('app/');
+</script>
+<style>
+  :root { --red: #E8322B; --red-deep: #B8201A; --text: #2A1F1F; --muted: #756A69; --canvas: #F4EEEC; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--canvas); color: var(--text); font-family: 'Nunito', system-ui, sans-serif; }
+  main { min-height: 100%; display: flex; align-items: center; justify-content: center; gap: 64px; padding: 24px; }
+  .intro { max-width: 360px; }
+  .logo { font-family: 'Fredoka', 'Nunito', sans-serif; font-weight: 700; font-size: 64px; line-height: 1; color: var(--red); margin: 0; }
+  .tagline { font-family: 'Fredoka', 'Nunito', sans-serif; font-weight: 600; font-size: 26px; line-height: 1.15; margin: 10px 0 18px; }
+  p { font-size: 17px; line-height: 1.5; font-weight: 700; color: var(--muted); margin: 0 0 14px; }
+  .btn { display: inline-flex; align-items: center; height: 52px; padding: 0 22px; border-radius: 16px; background: var(--red); box-shadow: 0 4px 0 var(--red-deep);
+         color: #fff; font-weight: 800; letter-spacing: .6px; text-transform: uppercase; text-decoration: none; margin-top: 8px; }
+  .btn:active { transform: translateY(4px); box-shadow: none; }
+  .note { font-size: 13px; margin-top: 18px; }
+  /* Celular: 390 × 844 (base do design) + moldura, escalado pra caber na altura da janela. */
+  .phone-wrap { flex-shrink: 0; }
+  .phone { position: relative; width: 414px; height: 868px; padding: 12px; border-radius: 60px; background: #1d1716; box-shadow: 0 30px 60px rgba(42,31,31,.25); transform-origin: top left; }
+  .screen { position: relative; width: 390px; height: 844px; border-radius: 48px; overflow: hidden; background: #fff; }
+  iframe { border: 0; width: 100%; height: 100%; display: block; }
+  .status { position: absolute; left: 0; right: 0; top: 0; height: 47px; display: flex; align-items: center; justify-content: space-between; padding: 6px 34px 0 42px;
+            font: 700 16px/1 -apple-system, system-ui, sans-serif; color: var(--text); pointer-events: none; }
+  .island { position: absolute; left: 50%; top: 11px; width: 120px; height: 34px; margin-left: -60px; border-radius: 20px; background: #000; pointer-events: none; }
+  .home { position: absolute; left: 50%; bottom: 8px; width: 134px; height: 5px; margin-left: -67px; border-radius: 3px; background: var(--text); pointer-events: none; }
+  .icons { display: flex; gap: 6px; align-items: center; }
+  @media (max-width: 900px) { .intro { display: none; } }
+</style>
+</head>
+<body>
+<main>
+  <section class="intro">
+    <h1 class="logo">Fera</h1>
+    <div class="tagline">Vira fera até o dia da prova.</div>
+    <p>Você manda o conteúdo da prova. A IA transforma em resumo, slides, mapa mental, gráficos, quizzes e missões de 5 minutos — com o Rugi do lado.</p>
+    <p>Esta é uma prévia interativa: clica no celular ao lado e usa como no app.</p>
+    <a class="btn" href="app/">Abrir em tela cheia</a>
+    <p class="note">Dados de exemplo · nada é enviado pra lugar nenhum.</p>
+  </section>
+  <div class="phone-wrap" id="wrap">
+    <div class="phone" id="phone">
+      <div class="screen">
+        <iframe src="app/" title="Fera — prévia do app" allow="clipboard-write"></iframe>
+        <div class="status"><span>9:41</span><span class="icons">
+          <svg width="18" height="12" viewBox="0 0 18 12"><rect x="0" y="8" width="3" height="4" rx="1" fill="currentColor"/><rect x="5" y="5.5" width="3" height="6.5" rx="1" fill="currentColor"/><rect x="10" y="3" width="3" height="9" rx="1" fill="currentColor"/><rect x="15" y="0" width="3" height="12" rx="1" fill="currentColor"/></svg>
+          <svg width="26" height="12" viewBox="0 0 26 12"><rect x=".5" y=".5" width="22" height="11" rx="3.5" fill="none" stroke="currentColor" opacity=".4"/><rect x="2" y="2" width="18" height="8" rx="2" fill="currentColor"/><rect x="24" y="4" width="2" height="4" rx="1" fill="currentColor" opacity=".4"/></svg>
+        </span></div>
+        <div class="island"></div>
+        <div class="home"></div>
+      </div>
+    </div>
+  </div>
+</main>
+<script>
+  // Escala o celular pra caber na janela.
+  const wrap = document.getElementById('wrap'), phone = document.getElementById('phone');
+  function fit() {
+    const s = Math.min(1, (window.innerHeight - 48) / 868, (window.innerWidth - 48) / 414);
+    phone.style.transform = 'scale(' + s + ')';
+    wrap.style.width = 414 * s + 'px';
+    wrap.style.height = 868 * s + 'px';
+  }
+  window.addEventListener('resize', fit); fit();
+</script>
+</body>
+</html>

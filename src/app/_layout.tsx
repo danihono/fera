@@ -1,3 +1,4 @@
+import '@/lib/webFrame';
 import { Fredoka_500Medium, Fredoka_600SemiBold, Fredoka_700Bold } from '@expo-google-fonts/fredoka';
 import {
   Nunito_400Regular,
@@ -10,8 +11,9 @@ import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { app } from '@/data/store';
 import { colors } from '@/theme';
 
 SplashScreen.preventAutoHideAsync();
@@ -28,11 +30,18 @@ export default function RootLayout() {
     Nunito_900Black,
   });
 
+  // Estado salvo no aparelho (onboarding feito, prova, XP, Fera+…).
+  const [hydrated, setHydrated] = useState(false);
   useEffect(() => {
-    if (loaded) SplashScreen.hideAsync();
-  }, [loaded]);
+    app.hydrate().finally(() => setHydrated(true));
+  }, []);
 
-  if (!loaded) return null;
+  const ready = loaded && hydrated;
+  useEffect(() => {
+    if (ready) SplashScreen.hideAsync();
+  }, [ready]);
+
+  if (!ready) return null;
 
   return (
     <SafeAreaProvider>
@@ -44,6 +53,9 @@ export default function RootLayout() {
         <Stack.Screen name="onboarding/data" />
         <Stack.Screen name="(tabs)" options={{ animation: 'fade' }} />
         <Stack.Screen name="prova/nova" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="prova/formatos" />
+        <Stack.Screen name="prova/materiais" />
+        <Stack.Screen name="material/[tipo]" />
         <Stack.Screen name="prova/gerando" options={{ animation: 'fade', gestureEnabled: false }} />
         <Stack.Screen name="missao/[id]" options={{ gestureEnabled: false }} />
         <Stack.Screen name="missao/fim" options={{ animation: 'fade', gestureEnabled: false }} />

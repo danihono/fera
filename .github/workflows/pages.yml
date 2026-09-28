@@ -24,14 +24,18 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npx expo export --platform web
+      # Site: /fera/ = moldura de celular (web/index.html) e /fera/app/ = o app (baseUrl /fera/app).
       # _expo/ começa com "_": sem .nojekyll o Pages ignora a pasta.
-      # 404.html = index.html para as rotas do Expo Router abrirem direto.
+      # 404.html = index do app, para as rotas do Expo Router abrirem direto.
       - run: |
-          touch dist/.nojekyll
-          cp dist/index.html dist/404.html
+          mkdir site
+          mv dist site/app
+          cp web/index.html site/index.html
+          cp site/app/index.html site/404.html
+          touch site/.nojekyll
       - name: Publicar no gh-pages
         run: |
-          cd dist
+          cd site
           git init -q -b gh-pages
           git config user.name "github-actions[bot]"
           git config user.email "41898+github-actions[bot]@users.noreply.github.com"

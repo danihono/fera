@@ -79,6 +79,7 @@ export default function OnboardingData() {
 
   const finish = () => {
     app.setProva({ data: selected, minutosDia: minutes });
+    app.setOnboarded();
     goHome();
   };
 

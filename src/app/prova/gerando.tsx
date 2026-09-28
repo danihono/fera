@@ -1,4 +1,5 @@
 // 05 · Gerando trilha — canvas artboard Gerando.dc.html
+import { router } from 'expo-router';
 import { useEffect } from 'react';
 import { StyleSheet, Text, View, type TextStyle, type ViewStyle } from 'react-native';
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withTiming, type SharedValue } from 'react-native-reanimated';
@@ -7,21 +8,25 @@ import Svg, { Circle, Path, Text as SvgText } from 'react-native-svg';
 import { CheckIcon } from '@/components/icons';
 import { Rugi } from '@/components/Rugi';
 import { kf, pingPong, useLoop } from '@/lib/anim';
+import { listaDeFormatos } from '@/data/formatos';
+import { useApp } from '@/data/store';
 import { goHome } from '@/lib/nav';
 import { colors, fonts, radius, sizes, space, type } from '@/theme';
 
 const PHRASES = ['Lendo sua letra (tá bonita, hein)', 'Separando o que mais cai…', 'Afiando as garras…'];
 const CYCLE_MS = 7500;
-// Sem backend ainda: depois de um ciclo inteiro das frases, a trilha "fica pronta" e abre a Início.
+// Sem backend ainda: depois de um ciclo inteiro das frases, a trilha "fica pronta": abre a Início e, por cima, os materiais.
 const DONE_MS = CYCLE_MS;
 const shineEasing = Easing.inOut(Easing.ease);
 
 export default function Gerando() {
   const insets = useSafeAreaInsets();
+  const { prova } = useApp();
 
   useEffect(() => {
     const timer = setTimeout(() => {
       goHome();
+      router.push('/prova/materiais');
     }, DONE_MS);
     return () => clearTimeout(timer);
   }, []);
@@ -117,7 +122,9 @@ export default function Gerando() {
               <Path d="M14 3a11 11 0 0 1 11 11" fill="none" stroke={colors.red} strokeWidth={4} strokeLinecap="round" />
             </Svg>
           </Animated.View>
-          <Text style={[styles.rowText, { fontFamily: fonts.nunito800 }]}>Criando 12 missões</Text>
+          <Text style={[styles.rowText, { fontFamily: fonts.nunito800, flexShrink: 1 }]} numberOfLines={1}>
+            Criando {listaDeFormatos(prova.formatos)}
+          </Text>
         </View>
       </View>
     </View>

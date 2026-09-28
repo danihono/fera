@@ -15,10 +15,16 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ellipse } from '@/components/Ellipse';
 import { FeraButton } from '@/components/FeraButton';
 import { Rugi } from '@/components/Rugi';
+import { app } from '@/data/store';
 import { colors, fonts, radius, sizes, space } from '@/theme';
 
 export default function OnboardingRugi() {
   const insets = useSafeAreaInsets();
+  // "Pular" e "Já tenho conta" contam como onboarding feito.
+  const skip = () => {
+    app.setOnboarded();
+    router.replace('/(tabs)');
+  };
 
   // "wave": balança de -4° a 3° em 2,4s, pivô perto dos pés.
   const wave = useSharedValue(0);
@@ -55,7 +61,7 @@ export default function OnboardingRugi() {
           <View style={styles.step} />
           <View style={styles.step} />
         </View>
-        <Pressable accessibilityRole="link" onPress={() => router.replace('/(tabs)')} style={styles.skip}>
+        <Pressable accessibilityRole="link" onPress={skip} style={styles.skip}>
           <Text style={styles.skipText}>Pular</Text>
         </Pressable>
       </View>
@@ -80,7 +86,7 @@ export default function OnboardingRugi() {
       <View style={styles.bottom}>
         <Text style={styles.copy}>Você manda o conteúdo da prova. Eu transformo em missões de 5 minutos.</Text>
         <FeraButton label="Bora!" onPress={() => router.push('/onboarding/materia')} />
-        <Pressable accessibilityRole="link" onPress={() => router.replace('/(tabs)')} style={styles.secondaryLink}>
+        <Pressable accessibilityRole="link" onPress={skip} style={styles.secondaryLink}>
           <Text style={styles.secondaryLinkText}>Já tenho conta</Text>
         </Pressable>
       </View>

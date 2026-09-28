@@ -25,7 +25,8 @@ const CURRENT = 2;
 export default function NovaProva() {
   const insets = useSafeAreaInsets();
   const { prova } = useApp();
-  const gerar = () => router.push('/prova/gerando');
+  // Depois do conteúdo, escolhe os formatos de estudo (prévia fora do design).
+  const gerar = () => router.push('/prova/formatos');
 
   return (
     <View

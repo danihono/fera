@@ -483,3 +483,72 @@ export function UserIcon({ size = 22, color = colors.red }: StrokeIconProps) {
     </Svg>
   );
 }
+
+// Formatos de estudo (extra, fora do design).
+export function StepsIcon({ size = 22, color = colors.red }: StrokeIconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+      <Path d="M4 6.5h2M4 12h2M4 17.5h2M9.5 6.5h10.5M9.5 12h10.5M9.5 17.5h7" />
+    </Svg>
+  );
+}
+
+export function MindMapIcon({ size = 22, color = colors.red }: StrokeIconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2.3} strokeLinecap="round" strokeLinejoin="round">
+      <Circle cx={12} cy={12} r={3} />
+      <Circle cx={4.5} cy={5.5} r={2} />
+      <Circle cx={19.5} cy={5.5} r={2} />
+      <Circle cx={4.5} cy={18.5} r={2} />
+      <Circle cx={19.5} cy={18.5} r={2} />
+      <Path d="M6 7l3.7 3M18 7l-3.7 3M6 17l3.7-3M18 17l-3.7-3" />
+    </Svg>
+  );
+}
+
+export function QuizIcon({ size = 22, color = colors.red }: StrokeIconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+      <Path d="M4.5 4.5h15a1 1 0 0 1 1 1v9.5a1 1 0 0 1-1 1h-9L6 19.5V16H4.5a1 1 0 0 1-1-1V5.5a1 1 0 0 1 1-1z" />
+      <Path d="M10.2 8.5a1.9 1.9 0 0 1 3.6.8c0 1.2-1.8 1.5-1.8 2.7M12 14h.01" />
+    </Svg>
+  );
+}
+
+export function SlidesIcon({ size = 22, color = colors.red }: StrokeIconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+      <Rect x={3.5} y={4.5} width={17} height={12} rx={2} />
+      <Path d="M12 16.5v3M8.5 19.5h7M10.5 8.5v4l3.5-2z" />
+    </Svg>
+  );
+}
+
+export function ChartIcon({ size = 22, color = colors.red }: StrokeIconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+      <Path d="M4 4v16h16M7.5 15.5l4-4.5 3 2.5 5-6" />
+    </Svg>
+  );
+}
+
+export function FlowIcon({ size = 22, color = colors.red }: StrokeIconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2.3} strokeLinecap="round" strokeLinejoin="round">
+      <Rect x={8} y={2.5} width={8} height={5} rx={1.5} />
+      <Rect x={2.5} y={16.5} width={8} height={5} rx={1.5} />
+      <Rect x={13.5} y={16.5} width={8} height={5} rx={1.5} />
+      <Path d="M12 7.5v4.5M6.5 16.5V12h11v4.5" />
+    </Svg>
+  );
+}
+
+export function ImageIcon({ size = 22, color = colors.red }: StrokeIconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+      <Rect x={3.5} y={4.5} width={17} height={15} rx={2.5} />
+      <Circle cx={9} cy={9.5} r={1.8} />
+      <Path d="M20.5 15.5 16 11l-8.5 8.5" />
+    </Svg>
+  );
+}

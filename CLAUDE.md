@@ -50,9 +50,16 @@ Montadas só com o design system para dar uma ideia do app completo — substitu
 | Configurações | `src/app/configuracoes.tsx` | engrenagem do Perfil |
 | Todas as conquistas | `src/app/conquistas.tsx` | "Ver todas" do Perfil |
 | Trocar/entrar em turma | sheets em `src/app/(tabs)/turma.tsx` | seletor de turma |
+| Escolha de formatos | `src/app/prova/formatos.tsx` | cards da Nova prova (04) |
+| Materiais da prova | `src/app/prova/materiais.tsx` | fim da Gerando, card da Início/Provas |
+| Material (resumo, slides…) | `src/app/material/[tipo].tsx` + `src/components/materiais/` | Materiais |
+
+Formatos (grátis e Fera+) ficam em `src/data/formatos.tsx`; conteúdo de exemplo em `src/data/materiais.ts`. Grátis escolhe até 2 formatos por prova, Fera+ até 4.
 
 Também são prévia: preços do Fera+ (compra simulada), atalhos "Prévias" nas Configurações (Streak e Véspera), troféu do Dia D → Véspera, textos das sheets (`InfoSheet`).
-O estado do app (matéria/data do onboarding, XP, Fera+, turma, nome) fica em memória em `src/data/store.ts` e volta ao padrão ao recarregar.
+O estado do app (onboarding feito, matéria/data, formatos, XP, Fera+, turma, nome) fica em `src/data/store.ts`, salvo no aparelho com AsyncStorage (localStorage na web). "Sair da conta" apaga.
+
+Site (GitHub Pages): `/fera/` é a moldura de celular (`web/index.html`) e `/fera/app/` é o app (`baseUrl` no `app.json`). Dentro da moldura, `src/lib/webFrame.ts` simula as áreas seguras do iPhone (47/34).
 
 Dados de exemplo (iguais aos do design) ficam em `src/data/` até o Firebase entrar. Animações em loop usam `useLoop` / `kf` / `pingPong` de `src/lib/anim.ts`; curvas de easing ficam fora do componente (se mudarem de identidade a cada render, a animação reinicia).
 

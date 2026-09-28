@@ -13,6 +13,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { iniciarNuvem } from '@/data/nuvem';
 import { app } from '@/data/store';
 import { colors } from '@/theme';
 
@@ -33,7 +34,11 @@ export default function RootLayout() {
   // Estado salvo no aparelho (onboarding feito, prova, XP, Fera+…).
   const [hydrated, setHydrated] = useState(false);
   useEffect(() => {
-    app.hydrate().finally(() => setHydrated(true));
+    app.hydrate().finally(() => {
+      setHydrated(true);
+      // Login anônimo e cópia na nuvem (se o Firebase estiver configurado), sem segurar o splash.
+      iniciarNuvem().catch(() => {});
+    });
   }, []);
 
   const ready = loaded && hydrated;
@@ -53,6 +58,7 @@ export default function RootLayout() {
         <Stack.Screen name="onboarding/data" />
         <Stack.Screen name="(tabs)" options={{ animation: 'fade' }} />
         <Stack.Screen name="prova/nova" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="prova/conteudo" />
         <Stack.Screen name="prova/formatos" />
         <Stack.Screen name="prova/materiais" />
         <Stack.Screen name="material/[tipo]" />

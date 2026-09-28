@@ -7,7 +7,7 @@ import { FeraButton } from '@/components/FeraButton';
 import { CheckIcon, CrownIcon } from '@/components/icons';
 import { ScreenHeader } from '@/components/ScreenHeader';
 import { TapScale } from '@/components/TapScale';
-import { FORMATOS, LIMITE_FORMATOS, type Formato, type FormatoId } from '@/data/formatos';
+import { formato, FORMATOS, LIMITE_FORMATOS, type Formato, type FormatoId } from '@/data/formatos';
 import { app, useApp } from '@/data/store';
 import { colors, fonts, radius, sizes, space, type } from '@/theme';
 
@@ -15,9 +15,13 @@ export default function Formatos() {
   const insets = useSafeAreaInsets();
   const { premium, prova } = useApp();
   const limite = premium ? LIMITE_FORMATOS.premium : LIMITE_FORMATOS.gratis;
-  const [escolhidos, setEscolhidos] = useState<FormatoId[]>(() => (prova.formatos as FormatoId[]).filter((id) => premium || !FORMATOS.find((f) => f.id === id)?.premium).slice(0, limite));
+  // O quiz (missões da trilha) sempre vem e não entra na conta.
+  const [escolhidos, setEscolhidos] = useState<FormatoId[]>(() =>
+    prova.formatos.filter((id) => !formato(id)?.sempre && (premium || !formato(id)?.premium)).slice(0, limite),
+  );
 
   const toggle = (f: Formato) => {
+    if (f.sempre) return;
     if (f.premium && !premium) {
       router.push('/premium');
       return;
@@ -44,7 +48,7 @@ export default function Formatos() {
       <ScrollView style={styles.body} contentContainerStyle={styles.bodyContent} showsVerticalScrollIndicator={false}>
         <Text style={styles.title}>Como você quer estudar?</Text>
         <Text style={styles.subtitle}>
-          Escolha até {limite} formatos. A IA monta tudo a partir do seu conteúdo de {prova.materia}.
+          Escolha até {limite} formatos. A IA monta tudo a partir do seu conteúdo de {prova.materia}. As missões da trilha sempre vêm junto.
         </Text>
 
         <View style={styles.counter}>
@@ -64,7 +68,7 @@ export default function Formatos() {
         <Grid items={pagos} escolhidos={escolhidos} premium={premium} onPress={toggle} />
       </ScrollView>
 
-      <FeraButton label="Gerar materiais" disabled={escolhidos.length === 0} onPress={gerar} />
+      <FeraButton label={escolhidos.length ? 'Gerar materiais' : 'Gerar só a trilha'} onPress={gerar} />
     </View>
   );
 }
@@ -76,14 +80,14 @@ function Grid({ items, escolhidos, premium, onPress }: { items: Formato[]; escol
       {rows.map((row, r) => (
         <View key={r} style={styles.gridRow}>
           {row.map((f) => {
-            const on = escolhidos.includes(f.id);
+            const on = escolhidos.includes(f.id) || !!f.sempre;
             const bloqueado = f.premium && !premium;
             return (
               <TapScale
                 key={f.id}
                 scale={0.96}
                 accessibilityRole="checkbox"
-                accessibilityState={{ checked: on, disabled: bloqueado }}
+                accessibilityState={{ checked: on, disabled: bloqueado || !!f.sempre }}
                 accessibilityLabel={bloqueado ? `${f.nome}, Fera+` : f.nome}
                 onPress={() => onPress(f)}
                 style={[styles.card, on && styles.cardOn]}
@@ -93,7 +97,7 @@ function Grid({ items, escolhidos, premium, onPress }: { items: Formato[]; escol
                 </View>
                 <Text style={[styles.cardName, bloqueado && { color: colors.textMuted }]}>{f.nome}</Text>
                 <Text style={styles.cardDesc} numberOfLines={2}>
-                  {f.descricao}
+                  {f.sempre ? 'Sempre vem: missões de 5 min' : f.descricao}
                 </Text>
                 {on && (
                   <View style={styles.check}>

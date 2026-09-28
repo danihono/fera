@@ -1,5 +1,6 @@
 // 11 · Modo véspera — canvas artboard Vespera.dc.html
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated, { useAnimatedStyle } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -7,14 +8,34 @@ import Svg, { Path } from 'react-native-svg';
 import { FeraButton } from '@/components/FeraButton';
 import { CloseIcon, TimerIcon } from '@/components/icons';
 import { Rugi } from '@/components/Rugi';
-import { mockProva, mockVespera } from '@/data/mock';
+import { Rolavel } from '@/components/Rolavel';
+import { useConteudo } from '@/data/conteudo';
+import { montarMissao } from '@/data/missoes';
+import { diasAte, useApp } from '@/data/store';
+import { planoExemplo } from '@/ia/exemplo';
 import { kf, pingPong, useLoop } from '@/lib/anim';
 import { goHome } from '@/lib/nav';
 import { colors, fonts, radius, sizes, space } from '@/theme';
 
 export default function Vespera() {
   const insets = useSafeAreaInsets();
-  const v = mockVespera;
+  const { provaId } = useLocalSearchParams<{ provaId: string }>();
+  const estado = useApp();
+  const prova = estado.provas.find((p) => p.id === provaId) ?? estado.provas.find((p) => p.id === estado.provaAtual) ?? null;
+  const { conteudo } = useConteudo(prova?.id ?? null);
+  const revisao = montarMissao('revisao', prova, conteudo);
+  const questoes = revisao?.questoes.length ?? 0;
+  const minutos = Math.max(3, Math.round(questoes * 0.6));
+  // Os tópicos em que mais errou; sem erros ainda, os tópicos do plano.
+  const erros = Object.entries(prova?.erros ?? {})
+    .filter(([, n]) => n > 0)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 3);
+  // Sem prova ainda (prévia), mostra os tópicos da prova de exemplo.
+  const plano = conteudo?.plano ?? (prova ? null : planoExemplo);
+  const topicos = erros.length ? erros.map(([nome, n]) => ({ nome, badge: `errou ${n}x` })) : (plano?.topicos ?? []).slice(0, 3).map((t) => ({ nome: t.nome, badge: 'revisar' }));
+  const dias = prova ? diasAte(prova.data) : 1;
+  const fala = dias <= 0 ? 'Hoje é o dia. Você consegue.' : dias === 1 ? 'Amanhã é o dia. Tamo junto.' : `Faltam ${dias} dias. Bora revisar.`;
   const top = insets.top + sizes.topExtra;
 
   // glow 1.4s · tick 1s (steps) · shake .5s
@@ -33,6 +54,8 @@ export default function Vespera() {
 
   return (
     <View style={[styles.screen, { paddingTop: top, paddingBottom: Math.max(insets.bottom, sizes.bottomExtra) + sizes.bottomExtra - sizes.shadow }]}>
+      {/* Fundo vermelho: relógio e bateria em branco. */}
+      <StatusBar style="light" />
       {/* Listras em coordenadas da tela base; acompanham o topo do conteúdo. */}
       <Svg width={390} height={844} viewBox="0 0 390 844" style={[styles.stripes, { top: top - 58 }]}>
         <Path d="M-20 170 C 50 150 100 175 125 210 C 80 205 30 212 -20 230 Z" fill={colors.redStripe} />
@@ -47,43 +70,47 @@ export default function Vespera() {
         <View style={styles.modeTag}>
           <Text style={styles.modeText}>MODO VÉSPERA</Text>
         </View>
-        <View style={styles.timer} accessible accessibilityLabel={`Tempo restante ${v.minutos} minutos`}>
+        <View style={styles.timer} accessible accessibilityLabel={`Tempo restante ${minutos} minutos`}>
           <TimerIcon size={20} color={colors.red} />
           <Text style={styles.timerText}>
-            {v.minutos}
+            {minutos}
             <Animated.Text style={tickStyle}>:</Animated.Text>
             00
           </Text>
         </View>
       </View>
 
-      <View style={styles.art}>
-        <Animated.View style={[styles.glow, glowStyle]} />
-        <Animated.View style={fireStyle}>
-          <Rugi mood="fogo" width={200} />
-        </Animated.View>
-        <View style={styles.bubble}>
-          <Text style={styles.bubbleText}>Amanhã é o dia. Tamo junto.</Text>
-        </View>
-      </View>
-
-      <Text style={styles.title}>Revisão relâmpago</Text>
-      <Text style={styles.subtitle}>Só o que você errou. {v.questoes} questões.</Text>
-
-      <View style={styles.list}>
-        {v.topicos.map((t, i) => (
-          <View key={t.nome} style={[styles.item, i < v.topicos.length - 1 && styles.itemDivider]}>
-            <View style={styles.dot} />
-            <Text style={styles.itemText}>{t.nome}</Text>
-            <View style={styles.badge}>
-              <Text style={styles.badgeText}>errou {t.erros}x</Text>
-            </View>
+      <Rolavel contentStyle={{ alignItems: 'center' }}>
+        <View style={styles.art}>
+          <Animated.View style={[styles.glow, glowStyle]} />
+          <Animated.View style={fireStyle}>
+            <Rugi mood="fogo" width={200} />
+          </Animated.View>
+          <View style={styles.bubble}>
+            <Text style={styles.bubbleText}>{fala}</Text>
           </View>
-        ))}
-      </View>
+        </View>
 
-      <View style={{ flex: 1 }} />
-      <FeraButton label="Começar revisão" variant="onRed" onPress={() => router.replace(`/missao/${mockProva.missaoAtual}`)} style={{ alignSelf: 'stretch' }} />
+        <Text style={styles.title}>Revisão relâmpago</Text>
+        <Text style={styles.subtitle}>
+          {erros.length ? 'Só o que você errou.' : 'O que mais cai.'} {questoes} questões.
+        </Text>
+
+        <View style={styles.list}>
+          {topicos.map((t, i) => (
+            <View key={t.nome} style={[styles.item, i < topicos.length - 1 && styles.itemDivider]}>
+              <View style={styles.dot} />
+              <Text style={styles.itemText} numberOfLines={1}>
+                {t.nome}
+              </Text>
+              <View style={styles.badge}>
+                <Text style={styles.badgeText}>{t.badge}</Text>
+              </View>
+            </View>
+          ))}
+        </View>
+      </Rolavel>
+      <FeraButton label="Começar revisão" variant="onRed" onPress={() => router.replace('/missao/revisao')} style={{ alignSelf: 'stretch' }} />
     </View>
   );
 }

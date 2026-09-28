@@ -1,5 +1,6 @@
 // 09 · Streak perdida — canvas artboard Streak.dc.html
 import { router } from 'expo-router';
+import { useEffect } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated, { Easing, useAnimatedStyle, type SharedValue } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -8,7 +9,8 @@ import { Ellipse } from '@/components/Ellipse';
 import { FeraButton } from '@/components/FeraButton';
 import { CloseIcon, FireIcon } from '@/components/icons';
 import { Rugi } from '@/components/Rugi';
-import { mockProva, mockUser } from '@/data/mock';
+import { Rolavel } from '@/components/Rolavel';
+import { app, provaAtualDe, proximaMissao, sequenciaQuebrada, useApp } from '@/data/store';
 import { pingPong, useLoop } from '@/lib/anim';
 import { goHome } from '@/lib/nav';
 import { colors, fonts, radius, sizes, space } from '@/theme';
@@ -17,6 +19,13 @@ const smokeEasing = Easing.out(Easing.ease);
 
 export default function Streak() {
   const insets = useSafeAreaInsets();
+  const estado = useApp();
+  const prova = provaAtualDe(estado);
+  const proxima = prova ? proximaMissao(prova) : null;
+  // Viu a tela: a sequência zera de vez e ela não aparece de novo até a próxima quebra.
+  useEffect(() => {
+    if (sequenciaQuebrada(app.get())) app.avisarQuebra();
+  }, []);
   // sob 1.6s · smoke 2.2s (atrasos 0 / .7s / 1.4s)
   const sob = useLoop(1600);
   const smoke = [useLoop(2200, { easing: smokeEasing }), useLoop(2200, { delay: 700, easing: smokeEasing }), useLoop(2200, { delay: 1400, easing: smokeEasing })];
@@ -30,40 +39,40 @@ export default function Streak() {
         </Pressable>
       </View>
 
-      <View style={styles.counter} accessible accessibilityLabel="Sequência: 0 dias">
-        <View style={styles.flame}>
-          <Smoke t={smoke[0]} left={12} top={0} size={10} />
-          <Smoke t={smoke[1]} left={18} top={2} size={8} />
-          <Smoke t={smoke[2]} left={8} top={4} size={7} />
-          <Svg width={36} height={40} viewBox="0 0 24 24" style={styles.flameSvg}>
-            <Path
-              d="M12 2.5c.8 3 3.8 4.8 5.2 8 1.6 3.8-.6 9-5.2 9s-6.8-4-5.6-7.6c.5-1.6 1.6-2.6 2.6-3.2 0 1.6.8 2.6 1.8 2.8C10.2 9.2 10.4 5.6 12 2.5z"
-              fill={colors.axis}
-            />
-          </Svg>
+      <Rolavel contentStyle={{ alignItems: 'center' }}>
+        <View style={styles.counter} accessible accessibilityLabel="Sequência: 0 dias">
+          <View style={styles.flame}>
+            <Smoke t={smoke[0]} left={12} top={0} size={10} />
+            <Smoke t={smoke[1]} left={18} top={2} size={8} />
+            <Smoke t={smoke[2]} left={8} top={4} size={7} />
+            <Svg width={36} height={40} viewBox="0 0 24 24" style={styles.flameSvg}>
+              <Path
+                d="M12 2.5c.8 3 3.8 4.8 5.2 8 1.6 3.8-.6 9-5.2 9s-6.8-4-5.6-7.6c.5-1.6 1.6-2.6 2.6-3.2 0 1.6.8 2.6 1.8 2.8C10.2 9.2 10.4 5.6 12 2.5z"
+                fill={colors.axis}
+              />
+            </Svg>
+          </View>
+          <Text style={styles.zero}>0</Text>
         </View>
-        <Text style={styles.zero}>0</Text>
-      </View>
 
-      <View style={styles.stage}>
-        <Ellipse width={200} height={20} color={colors.border} style={styles.floor} />
-        <Animated.View style={[{ marginBottom: 8 }, sobStyle]}>
-          <Rugi mood="triste" width={184} accessibilityLabel="Rugi triste, com uma lágrima" />
-        </Animated.View>
-      </View>
+        <View style={styles.stage}>
+          <Ellipse width={200} height={20} color={colors.border} style={styles.floor} />
+          <Animated.View style={[{ marginBottom: 8 }, sobStyle]}>
+            <Rugi mood="triste" width={184} accessibilityLabel="Rugi triste, com uma lágrima" />
+          </Animated.View>
+        </View>
 
-      <Text style={styles.title}>Poxa… sua sequência zerou</Text>
-      {/* Quebras do design (text-wrap: pretty). */}
-      <Text style={styles.copy}>{'O Rugi sentiu sua falta. Uma missão\nde 3 minutos já acende o fogo\nde novo.'}</Text>
+        <Text style={styles.title}>Poxa… sua sequência zerou</Text>
+        {/* Quebras do design (text-wrap: pretty). */}
+        <Text style={styles.copy}>{'O Rugi sentiu sua falta. Uma missão\nde 3 minutos já acende o fogo\nde novo.'}</Text>
 
-      <View style={styles.record}>
-        <FireIcon size={20} core={false} />
-        <Text style={styles.recordText}>Seu recorde: {mockUser.recordeStreak} dias</Text>
-      </View>
-
-      <View style={{ flex: 1 }} />
+        <View style={styles.record}>
+          <FireIcon size={20} core={false} />
+          <Text style={styles.recordText}>Seu recorde: {estado.recorde} {estado.recorde === 1 ? 'dia' : 'dias'}</Text>
+        </View>
+      </Rolavel>
       <View style={styles.actions}>
-        <FeraButton label="Recomeçar agora" onPress={() => router.replace(`/missao/${mockProva.missaoAtual}`)} />
+        <FeraButton label="Recomeçar agora" onPress={() => (proxima ? router.replace(`/missao/${proxima}`) : goHome())} />
         <Pressable accessibilityRole="link" onPress={goHome} style={styles.link}>
           <Text style={styles.linkText}>Agora não</Text>
         </Pressable>

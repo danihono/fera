@@ -10,8 +10,10 @@ import { CheckIcon, ChevronDownIcon, CopyIcon, CrownIcon, ShareIcon } from '@/co
 import { InfoSheet } from '@/components/InfoSheet';
 import { TextInputSheet } from '@/components/TextInputSheet';
 import { StatPill } from '@/components/StatPill';
-import { mockTurma, mockUser, type Colega } from '@/data/mock';
-import { app, useApp } from '@/data/store';
+import { mockTurma, type Colega } from '@/data/mock';
+import { criarTurma, entrarNaTurmaNuvem, ouvirRanking, type Membro } from '@/data/nuvem';
+import { app, nomeDe, streakAtual, useApp, VIDAS } from '@/data/store';
+import { firebaseLigado, usuarioAtual } from '@/lib/firebase';
 import { shortDate } from '@/lib/dates';
 import { colors, fonts, radius, sizes, solidShadow, space, type } from '@/theme';
 
@@ -25,12 +27,62 @@ const PODIUM = [
   { place: 3, delay: 0, bar: 52, avatar: 56, avatarBg: colors.errorBg, avatarText: colors.errorText, ring: colors.border, ringWidth: 2, letter: 22 },
 ] as const;
 
+/** Turma de exemplo (modo demonstração, sem Firebase): os colegas do design e você com o seu XP de verdade. */
+const TURMA_EXEMPLO = { codigo: mockTurma.codigo, nome: mockTurma.nome };
+
 export default function Turma() {
   const insets = useSafeAreaInsets();
-  const t = mockTurma;
-  const { prova, xp, turma, turmas, premium } = useApp();
-  const [sheet, setSheet] = useState<null | 'turmas' | 'codigo' | 'copiado'>(null);
-  const resto = t.ranking.slice(3);
+  const estado = useApp();
+  const { prova, xp, turmas, premium } = estado;
+  const [sheet, setSheet] = useState<null | 'turmas' | 'codigo' | 'criar' | 'copiado' | 'nome'>(null);
+  // Na turma o nome aparece pros colegas: sem nome ainda, pergunta antes de criar/entrar.
+  const [depoisDoNome, setDepoisDoNome] = useState<'codigo' | 'criar' | null>(null);
+  const abrir = (proxima: 'codigo' | 'criar') => {
+    if (nuvem && !estado.nome.trim()) {
+      setDepoisDoNome(proxima);
+      setSheet('nome');
+    } else {
+      setSheet(proxima);
+    }
+  };
+  const [aviso, setAviso] = useState<string | null>(null);
+  const [ao, setAo] = useState<{ codigo: string; membros: Membro[] } | null>(null);
+  const nuvem = firebaseLigado;
+  const turma = nuvem ? estado.turma : (estado.turma ?? TURMA_EXEMPLO);
+  const codigo = turma?.codigo ?? null;
+  const eu = usuarioAtual()?.uid;
+
+  // Ranking ao vivo da turma escolhida.
+  useEffect(() => {
+    if (!nuvem || !codigo) return;
+    return ouvirRanking(codigo, (membros) => setAo({ codigo, membros }));
+  }, [nuvem, codigo]);
+  const membros = ao && ao.codigo === codigo ? ao.membros : null;
+
+  const minhaInicial = nomeDe(estado).charAt(0).toUpperCase();
+  const ranking: (Colega & { voce: boolean })[] = nuvem
+    ? (membros ?? []).map((m) => ({ nome: m.uid === eu ? 'Você' : m.nome, inicial: m.inicial, xp: m.uid === eu ? xp : m.xp, voce: m.uid === eu }))
+    : [...mockTurma.ranking.filter((_, i) => i !== mockTurma.voce).map((c) => ({ ...c, voce: false })), { nome: 'Você', inicial: minhaInicial, xp, voce: true }];
+  ranking.sort((a, b) => b.xp - a.xp);
+  const podio = ranking.length >= 3;
+  const minhaPosicao = ranking.findIndex((c) => c.voce);
+  useEffect(() => {
+    if (ranking.length >= 4 && minhaPosicao >= 0 && minhaPosicao < 3) app.marcar('top3');
+  }, [ranking.length, minhaPosicao]);
+  const resto = podio ? ranking.slice(3) : ranking;
+
+  const entrar = async (codigo: string) => {
+    const c = codigo.trim().toUpperCase();
+    if (!nuvem) return app.entrarNaTurma({ codigo: c, nome: `Turma ${c}` });
+    const t = await entrarNaTurmaNuvem(c).catch(() => null);
+    if (t) app.entrarNaTurma(t);
+    else setAviso(`Não achei a turma ${c}. Confere o código com quem te chamou.`);
+  };
+  const criar = async (nome: string) => {
+    const t = await criarTurma(nome).catch(() => null);
+    if (t) app.entrarNaTurma(t);
+    else setAviso('Não deu pra criar a turma agora. Confere a internet e tenta de novo.');
+  };
 
   return (
     <ScrollView
@@ -39,80 +91,97 @@ export default function Turma() {
       showsVerticalScrollIndicator={false}
     >
       <View style={styles.stats}>
-        <StatPill kind="streak" value={mockUser.streak} />
+        <StatPill kind="streak" value={streakAtual(estado)} />
         <StatPill kind="xp" value={xp} />
-        <StatPill kind="lives" value={premium ? '∞' : mockUser.lives} />
+        <StatPill kind="lives" value={premium ? '∞' : VIDAS} />
       </View>
 
       <View style={styles.titleRow}>
         <Text style={styles.title}>Turma</Text>
         <Pressable accessibilityRole="button" onPress={() => setSheet('turmas')} style={styles.classPicker}>
-          <Text style={styles.classText}>{turma}</Text>
+          <Text style={styles.classText} numberOfLines={1}>
+            {turma?.nome ?? 'Escolher turma'}
+          </Text>
           <ChevronDownIcon size={16} color={colors.textMuted} />
         </Pressable>
       </View>
       <Text style={styles.subtitle}>Ranking até a prova · {shortDate(prova.data).toLowerCase()}</Text>
 
-      {/* O pódio tem 222 de altura, mas o conteúdo é mais alto e desce por cima da lista (como no design). */}
-      <View style={styles.podium}>
-        <View style={styles.podiumRow}>
-          {PODIUM.map((p) => (
-            <PodiumColumn key={p.place} colega={t.ranking[p.place - 1]} {...p} />
-          ))}
+      {!turma ? (
+        <View style={styles.semTurma}>
+          <Text style={styles.semTurmaText}>Estudar com a galera rende mais. Cria a turma e manda o código, ou entra com o código de alguém.</Text>
+          <FeraButton label="Criar turma" onPress={() => abrir('criar')} />
+          <FeraButton label="Entrar com código" variant="secondary" onPress={() => abrir('codigo')} />
         </View>
-      </View>
-
-      <View style={styles.list}>
-        {resto.map((c, i) => {
-          const pos = i + 4;
-          const voce = pos - 1 === t.voce;
-          return voce ? (
-            <View key={c.nome} style={[styles.row, styles.rowMe]} accessibilityState={{ selected: true }}>
-              <Text style={[styles.rank, { fontFamily: fonts.fredoka700, color: colors.redText }]}>{pos}</Text>
-              <View style={[styles.rowAvatar, { backgroundColor: colors.red }]}>
-                <Text style={[styles.rowAvatarText, { color: colors.white }]}>{mockUser.inicial}</Text>
+      ) : (
+        <>
+          {podio && (
+            /* O pódio tem 222 de altura, mas o conteúdo é mais alto e desce por cima da lista (como no design). */
+            <View style={styles.podium}>
+              <View style={styles.podiumRow}>
+                {PODIUM.map((p) => (
+                  <PodiumColumn key={p.place} colega={ranking[p.place - 1]} {...p} />
+                ))}
               </View>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.meName}>Você</Text>
-                <Text style={styles.meUp}>↑ subiu {t.subiuHoje} hoje</Text>
-              </View>
-              <Text style={[styles.rowXp, { color: colors.redText }]}>{fmt(c.xp)} XP</Text>
             </View>
-          ) : (
-            <View key={c.nome} style={styles.row}>
-              <Text style={styles.rank}>{pos}</Text>
-              <View style={[styles.rowAvatar, i % 2 === 0 ? { backgroundColor: colors.redSoft } : styles.rowAvatarPlain]}>
-                <Text style={[styles.rowAvatarText, i % 2 === 0 && { color: colors.redText }]}>{c.inicial}</Text>
-              </View>
-              <Text style={styles.rowName}>{c.nome}</Text>
-              <Text style={styles.rowXp}>{fmt(c.xp)} XP</Text>
-            </View>
-          );
-        })}
-      </View>
+          )}
 
-      <View style={styles.actions}>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={`Copiar código da sala ${t.codigo}`}
-          onPress={() => Clipboard.setStringAsync(t.codigo).then(() => setSheet('copiado'))}
-          style={styles.code}
-        >
-          <Text style={styles.codeText}>{t.codigo}</Text>
-          <CopyIcon size={20} color={colors.redText} />
-        </Pressable>
-        <Pressable
-          accessibilityRole="button"
-          onPress={() => Share.share({ message: `Entra na nossa sala no Fera: ${t.codigo}` })}
-          style={({ pressed }) => [
-            styles.invite,
-            { boxShadow: pressed ? 'none' : solidShadow(colors.border), transform: [{ translateY: pressed ? sizes.shadow : 0 }] },
-          ]}
-        >
-          <ShareIcon size={20} color={colors.redText} />
-          <Text style={styles.inviteText}>Convidar a turma</Text>
-        </Pressable>
-      </View>
+          {resto.length > 0 && (
+            <View style={[styles.list, !podio && { marginTop: 14 }]}>
+              {resto.map((c, i) => {
+                const pos = i + (podio ? 4 : 1);
+                return c.voce ? (
+                  <View key={`${c.nome}-${i}`} style={[styles.row, styles.rowMe]} accessibilityState={{ selected: true }}>
+                    <Text style={[styles.rank, { fontFamily: fonts.fredoka700, color: colors.redText }]}>{pos}</Text>
+                    <View style={[styles.rowAvatar, { backgroundColor: colors.red }]}>
+                      <Text style={[styles.rowAvatarText, { color: colors.white }]}>{minhaInicial}</Text>
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.meName}>Você</Text>
+                    </View>
+                    <Text style={[styles.rowXp, { color: colors.redText }]}>{fmt(c.xp)} XP</Text>
+                  </View>
+                ) : (
+                  <View key={`${c.nome}-${i}`} style={styles.row}>
+                    <Text style={styles.rank}>{pos}</Text>
+                    <View style={[styles.rowAvatar, i % 2 === 0 ? { backgroundColor: colors.redSoft } : styles.rowAvatarPlain]}>
+                      <Text style={[styles.rowAvatarText, i % 2 === 0 && { color: colors.redText }]}>{c.inicial}</Text>
+                    </View>
+                    <Text style={styles.rowName} numberOfLines={1}>
+                      {c.nome}
+                    </Text>
+                    <Text style={styles.rowXp}>{fmt(c.xp)} XP</Text>
+                  </View>
+                );
+              })}
+            </View>
+          )}
+          {nuvem && membros && membros.length < 3 && <Text style={styles.dica}>Com 3 pessoas aparece o pódio. Chama a galera!</Text>}
+
+          <View style={styles.actions}>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={`Copiar código da sala ${turma.codigo}`}
+              onPress={() => Clipboard.setStringAsync(turma.codigo).then(() => setSheet('copiado'))}
+              style={styles.code}
+            >
+              <Text style={styles.codeText}>{turma.codigo}</Text>
+              <CopyIcon size={20} color={colors.redText} />
+            </Pressable>
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => Share.share({ message: `Entra na nossa sala no Fera: ${turma.codigo}` })}
+              style={({ pressed }) => [
+                styles.invite,
+                { boxShadow: pressed ? 'none' : solidShadow(colors.border), transform: [{ translateY: pressed ? sizes.shadow : 0 }] },
+              ]}
+            >
+              <ShareIcon size={20} color={colors.redText} />
+              <Text style={styles.inviteText}>Convidar a turma</Text>
+            </Pressable>
+          </View>
+        </>
+      )}
 
       {sheet === 'turmas' && (
         <BottomSheet onClose={() => setSheet((x) => (x === 'turmas' ? null : x))}>
@@ -120,23 +189,24 @@ export default function Turma() {
             <>
               <Text style={styles.sheetTitle}>Suas turmas</Text>
               <View>
-                {turmas.map((nome) => {
-                  const on = nome === turma;
+                {(nuvem ? turmas : turmas.length ? turmas : [TURMA_EXEMPLO]).map((t) => {
+                  const on = t.codigo === turma?.codigo;
                   return (
                     <Pressable
-                      key={nome}
+                      key={t.codigo}
                       accessibilityRole="radio"
                       accessibilityState={{ checked: on }}
-                      onPress={() => close(() => app.setTurma(nome))}
+                      onPress={() => close(() => app.setTurma(t))}
                       style={styles.turmaRow}
                     >
                       <View style={[styles.radio, on && styles.radioOn]}>{on && <CheckIcon size={14} color={colors.white} />}</View>
-                      <Text style={[styles.turmaName, on && { color: colors.redText }]}>{nome}</Text>
+                      <Text style={[styles.turmaName, on && { color: colors.redText }]}>{t.nome}</Text>
                     </Pressable>
                   );
                 })}
               </View>
-              <FeraButton label="Entrar em outra turma" variant="secondary" onPress={() => close(() => setSheet('codigo'))} />
+              <FeraButton label="Entrar em outra turma" variant="secondary" onPress={() => close(() => abrir('codigo'))} />
+              {nuvem && <FeraButton label="Criar turma" variant="secondary" onPress={() => close(() => abrir('criar'))} />}
             </>
           )}
         </BottomSheet>
@@ -148,19 +218,36 @@ export default function Turma() {
           autoCapitalize="characters"
           maxLength={12}
           button="Entrar"
-          onSubmit={(codigo) => app.entrarNaTurma(`Turma ${codigo.toUpperCase()}`)}
+          onSubmit={entrar}
           onClose={() => setSheet(null)}
         />
       )}
-      {sheet === 'copiado' && (
+      {sheet === 'nome' && (
+        <TextInputSheet
+          title="Como a turma vai te chamar?"
+          placeholder="Seu nome ou apelido"
+          maxLength={30}
+          onSubmit={(nome) => {
+            app.setNome(nome);
+            setDepoisDoNome(null);
+            setSheet(depoisDoNome);
+          }}
+          onClose={() => setSheet((x) => (x === 'nome' ? null : x))}
+        />
+      )}
+      {sheet === 'criar' && (
+        <TextInputSheet title="Nome da turma" placeholder="Ex.: 2º B · Matemática" maxLength={40} button="Criar" onSubmit={criar} onClose={() => setSheet(null)} />
+      )}
+      {sheet === 'copiado' && turma && (
         <InfoSheet
           mood="comemorando"
           title="Código copiado!"
-          text={`Manda o ${t.codigo} pra galera entrar na sala.`}
+          text={`Manda o ${turma.codigo} pra galera entrar na sala.`}
           button="Beleza"
           onClose={() => setSheet(null)}
         />
       )}
+      {aviso && <InfoSheet mood="pensativo" title="Opa!" text={aviso} button="Beleza" onClose={() => setAviso(null)} />}
     </ScrollView>
   );
 }
@@ -266,7 +353,6 @@ const styles = StyleSheet.create({
   rowAvatarPlain: { backgroundColor: colors.offWhite, borderWidth: sizes.borderWidth, borderColor: colors.border },
   rowAvatarText: { fontFamily: fonts.fredoka600, fontSize: 18, color: colors.text },
   meName: { fontFamily: fonts.nunito900, fontSize: 16, color: colors.text },
-  meUp: { fontFamily: fonts.nunito800, fontSize: 12, color: colors.successText },
   rowName: { flex: 1, fontFamily: fonts.nunito800, fontSize: 16, color: colors.text },
   rowXp: { fontFamily: fonts.fredoka600, fontSize: 17, color: colors.textMuted },
   actions: { marginTop: 14, flexDirection: 'row', gap: 10 },
@@ -296,6 +382,9 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   sheetTitle: { fontFamily: fonts.nunito800, fontSize: 20, color: colors.text },
+  semTurma: { marginTop: 20, gap: 12 },
+  semTurmaText: { fontFamily: fonts.nunito700, fontSize: 16, lineHeight: 22, color: colors.textMuted, marginBottom: 4 },
+  dica: { marginTop: 10, fontFamily: fonts.nunito700, fontSize: 13, color: colors.textMuted, textAlign: 'center' },
   turmaRow: { height: 56, flexDirection: 'row', alignItems: 'center', gap: 12 },
   radio: { width: 26, height: 26, borderRadius: 13, borderWidth: sizes.borderWidth, borderColor: colors.border, alignItems: 'center', justifyContent: 'center' },
   radioOn: { borderWidth: 0, backgroundColor: colors.red },

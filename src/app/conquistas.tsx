@@ -6,14 +6,16 @@ import { InfoSheet } from '@/components/InfoSheet';
 import { MedalGrid } from '@/components/Medal';
 import { ProgressBar } from '@/components/ProgressBar';
 import { ScreenHeader } from '@/components/ScreenHeader';
-import { CONQUISTAS, type Conquista } from '@/data/conquistas';
+import { conquistasDe, type Conquista } from '@/data/conquistas';
+import { useApp } from '@/data/store';
 import { colors, fonts, sizes, space } from '@/theme';
 
 export default function Conquistas() {
   const insets = useSafeAreaInsets();
   const [medalha, setMedalha] = useState<Conquista | null>(null);
-  const feitas = CONQUISTAS.filter((c) => !c.bloqueada);
-  const bloqueadas = CONQUISTAS.filter((c) => c.bloqueada);
+  const todas = conquistasDe(useApp());
+  const feitas = todas.filter((c) => !c.bloqueada);
+  const bloqueadas = todas.filter((c) => c.bloqueada);
 
   return (
     <ScrollView
@@ -26,11 +28,11 @@ export default function Conquistas() {
       <View style={styles.summary}>
         <Text style={styles.count}>
           {feitas.length}
-          <Text style={styles.countTotal}> de {CONQUISTAS.length}</Text>
+          <Text style={styles.countTotal}> de {todas.length}</Text>
         </Text>
         <Text style={styles.countLabel}>conquistas desbloqueadas</Text>
         <View style={{ flexDirection: 'row', marginTop: 8 }}>
-          <ProgressBar height={14} shine={3} progress={feitas.length / CONQUISTAS.length} accessibilityLabel="Conquistas desbloqueadas" />
+          <ProgressBar height={14} shine={3} progress={feitas.length / todas.length} accessibilityLabel="Conquistas desbloqueadas" />
         </View>
       </View>
 

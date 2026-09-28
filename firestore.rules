@@ -1,0 +1,53 @@
+rules_version = '2';
+
+// Regras do Fera. Cada aluno (login anônimo) só lê e escreve o que é dele;
+// turmas são abertas pra quem está logado (o código é o convite) e cada um só mexe na própria linha do ranking.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function logado() {
+      return request.auth != null;
+    }
+    function eu(uid) {
+      return logado() && request.auth.uid == uid;
+    }
+
+    match /usuarios/{uid} {
+      allow read, delete: if eu(uid);
+      allow create, update: if eu(uid) && request.resource.data.keys().hasOnly(['estado', 'atualizadoEm']);
+
+      // O que a IA gerou pra cada prova (no modo grátis o próprio app grava).
+      match /conteudos/{provaId} {
+        allow read, write: if eu(uid);
+      }
+
+      // Progresso da geração no servidor: só as Cloud Functions (Admin SDK) escrevem.
+      match /geracoes/{provaId} {
+        allow read: if eu(uid);
+        allow write: if false;
+      }
+    }
+
+    match /turmas/{codigo} {
+      allow read: if logado();
+      allow create: if logado()
+        && codigo.matches('^FERA-[A-Z0-9]{3}$')
+        && request.resource.data.keys().hasOnly(['nome', 'criadaPor', 'criadaEm'])
+        && request.resource.data.criadaPor == request.auth.uid
+        && request.resource.data.nome is string
+        && request.resource.data.nome.size() <= 40;
+      allow update, delete: if false;
+
+      match /membros/{uid} {
+        allow read: if logado();
+        allow delete: if eu(uid);
+        allow create, update: if eu(uid)
+          && exists(/databases/$(database)/documents/turmas/$(codigo))
+          && request.resource.data.keys().hasOnly(['nome', 'inicial', 'xp', 'atualizadoEm'])
+          && request.resource.data.nome is string
+          && request.resource.data.nome.size() <= 30
+          && request.resource.data.xp is int
+          && request.resource.data.xp >= 0;
+      }
+    }
+  }
+}

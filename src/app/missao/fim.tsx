@@ -10,8 +10,8 @@ import { FeraButton } from '@/components/FeraButton';
 import { BoltIcon, FireIcon } from '@/components/icons';
 import { ProgressBar } from '@/components/ProgressBar';
 import { Rugi } from '@/components/Rugi';
-import { mockMissao } from '@/data/missao';
-import { mockUser } from '@/data/mock';
+import { Rolavel } from '@/components/Rolavel';
+import { nivelDe, provaAtualDe, proximaMissao, streakAtual, useApp, XP_POR_NIVEL } from '@/data/store';
 import { pingPong, useLoop } from '@/lib/anim';
 import { goHome } from '@/lib/nav';
 import { colors, fonts, radius, sizes, solidShadow, space, type } from '@/theme';
@@ -33,13 +33,15 @@ const RAYS = Array.from({ length: 12 }, (_, i) => i * 30);
 
 export default function Fim() {
   const insets = useSafeAreaInsets();
-  const params = useLocalSearchParams<{ id?: string; xp?: string; precisao?: string }>();
-  // Sem params (missão já concluída, aberta pela trilha), mostra os números do design.
-  const numero = Number(params.id ?? mockMissao.numero);
-  const xp = Number(params.xp ?? 45);
-  const precisao = Number(params.precisao ?? 92);
-  const sequencia = mockUser.streak + 1;
-  const nivel = { atual: mockUser.xpNivel, total: mockUser.xpProximoNivel };
+  const params = useLocalSearchParams<{ id?: string; xp?: string; precisao?: string; subtitulo?: string }>();
+  const estado = useApp();
+  const prova = provaAtualDe(estado);
+  const xp = Number(params.xp ?? 0);
+  const precisao = Number(params.precisao ?? 0);
+  const sequencia = streakAtual(estado);
+  const n = nivelDe(estado.xp);
+  const nivel = { atual: n.noNivel, total: XP_POR_NIVEL };
+  const proxima = prova ? proximaMissao(prova) : null;
 
   // rays 30s · rise .6s · roll 1.2s .4s · flick .8s · fill 1.2s .8s
   const rays = useLoop(30000);
@@ -63,8 +65,8 @@ export default function Fim() {
     const w = pingPong(flick.value);
     return { transform: [{ scaleX: 1 + 0.08 * w }, { scaleY: 1 + 0.12 * w }, { rotate: `${-2 + 4 * w}deg` }], transformOrigin: '50% 90%' };
   });
-  // fill: a barra do nível sai de 62% e chega no valor atual.
-  const from = 0.62;
+  // fill: a barra do nível sai de onde estava antes desta missão e chega no valor atual.
+  const from = Math.max(0, (nivel.atual - xp) / nivel.total);
   const to = nivel.atual / nivel.total;
   const fillStyle = useAnimatedStyle(() => ({ width: `${(from + (to - from) * fill.value) * 100}%` }));
 
@@ -84,76 +86,82 @@ export default function Fim() {
         <ConfettiPiece key={i} spec={{ ...c, top: c.top + insets.top + sizes.topExtra - 58 }} fall={FALL_FIM} />
       ))}
 
-      <Animated.View style={[{ marginTop: 22 }, riseStyle]}>
-        <Rugi mood="trofeu" width={190} accessibilityLabel="Rugi segurando um troféu" />
-      </Animated.View>
-      <Text style={styles.title}>Missão completa!</Text>
-      <Text style={styles.subtitle}>
-        {mockMissao.topico} · Missão {numero}
-      </Text>
+      <Rolavel contentStyle={{ alignItems: 'center' }}>
+        <Animated.View style={[{ marginTop: 22 }, riseStyle]}>
+          <Rugi mood="trofeu" width={190} accessibilityLabel="Rugi segurando um troféu" />
+        </Animated.View>
+        <Text style={styles.title}>Missão completa!</Text>
+        <Text style={styles.subtitle} numberOfLines={1}>
+          {params.subtitulo ?? prova?.topico ?? '\u00a0'}
+        </Text>
 
-      <View style={styles.stats}>
-        <View style={[styles.stat, styles.statBorder]}>
-          <Text style={styles.statLabel}>XP GANHO</Text>
-          <View style={styles.xpRow}>
-            <BoltIcon size={22} outline={false} />
-            <View style={styles.rollWindow} accessible accessibilityLabel={`mais ${xp}`}>
-              <Animated.View style={rollStyle}>
-                {[0, 1, 2, 3].map((k) => (
-                  <Text key={k} style={[styles.statValue, { color: colors.red }]}>
-                    +{Math.round((xp * k) / 3)}
-                  </Text>
-                ))}
-              </Animated.View>
+        <View style={styles.stats}>
+          <View style={[styles.stat, styles.statBorder]}>
+            <Text style={styles.statLabel}>XP GANHO</Text>
+            <View style={styles.xpRow}>
+              <BoltIcon size={22} outline={false} />
+              <View style={styles.rollWindow} accessible accessibilityLabel={`mais ${xp}`}>
+                <Animated.View style={rollStyle}>
+                  {[0, 1, 2, 3].map((k) => (
+                    <Text key={k} style={[styles.statValue, { color: colors.red }]}>
+                      +{Math.round((xp * k) / 3)}
+                    </Text>
+                  ))}
+                </Animated.View>
+              </View>
             </View>
           </View>
-        </View>
 
-        <View style={[styles.stat, { boxShadow: solidShadow(colors.redDeep) }]}>
-          <Svg style={StyleSheet.absoluteFill} width="100%" height="100%">
-            <Defs>
-              {/* linear-gradient(160deg, fireTop, fireBottom) */}
-              <LinearGradient id="streakCard" x1="0.33" y1="0.03" x2="0.67" y2="0.97">
-                <Stop offset="0" stopColor={colors.fireTop} />
-                <Stop offset="1" stopColor={colors.fireBottom} />
-              </LinearGradient>
-            </Defs>
-            <Rect width="100%" height="100%" rx={radius.option} fill="url(#streakCard)" />
-          </Svg>
-          <Text style={[styles.statLabel, { color: colors.white }]}>SEQUÊNCIA</Text>
-          <View style={styles.streakRow}>
-            <Animated.View style={flickStyle}>
-              <FireIcon size={24} fill={colors.white} coreFill={colors.fireCoreWarm} />
-            </Animated.View>
-            <Text style={[styles.statValue, { color: colors.white }]}>{sequencia}</Text>
+          <View style={[styles.stat, { boxShadow: solidShadow(colors.redDeep) }]}>
+            <Svg style={StyleSheet.absoluteFill} width="100%" height="100%">
+              <Defs>
+                {/* linear-gradient(160deg, fireTop, fireBottom) */}
+                <LinearGradient id="streakCard" x1="0.33" y1="0.03" x2="0.67" y2="0.97">
+                  <Stop offset="0" stopColor={colors.fireTop} />
+                  <Stop offset="1" stopColor={colors.fireBottom} />
+                </LinearGradient>
+              </Defs>
+              <Rect width="100%" height="100%" rx={radius.option} fill="url(#streakCard)" />
+            </Svg>
+            <Text style={[styles.statLabel, { color: colors.white }]}>SEQUÊNCIA</Text>
+            <View style={styles.streakRow}>
+              <Animated.View style={flickStyle}>
+                <FireIcon size={24} fill={colors.white} coreFill={colors.fireCoreWarm} />
+              </Animated.View>
+              <Text style={[styles.statValue, { color: colors.white }]}>{sequencia}</Text>
+            </View>
+            <Text style={styles.streakUnit}>dias</Text>
           </View>
-          <Text style={styles.streakUnit}>dias</Text>
+
+          <View style={[styles.stat, styles.statBorder]}>
+            <Text style={styles.statLabel}>PRECISÃO</Text>
+            <Text style={[styles.statValue, { color: colors.successText }]}>{precisao}%</Text>
+          </View>
         </View>
 
-        <View style={[styles.stat, styles.statBorder]}>
-          <Text style={styles.statLabel}>PRECISÃO</Text>
-          <Text style={[styles.statValue, { color: colors.successText }]}>{precisao}%</Text>
+        <View style={styles.level}>
+          <View style={styles.levelRow}>
+            <Text style={styles.levelName}>Nível {n.nivel}</Text>
+            <Text style={styles.levelXp}>
+              {nivel.atual.toLocaleString('pt-BR')} / {nivel.total.toLocaleString('pt-BR')} XP
+            </Text>
+          </View>
+          <View style={styles.levelBar}>
+            <ProgressBar height={14} shine={3} progress={to} fillStyle={fillStyle} accessibilityLabel={`Nível ${n.nivel}`} />
+          </View>
         </View>
-      </View>
-
-      <View style={styles.level}>
-        <View style={styles.levelRow}>
-          <Text style={styles.levelName}>Nível {mockUser.nivel}</Text>
-          <Text style={styles.levelXp}>
-            {nivel.atual.toLocaleString('pt-BR')} / {nivel.total.toLocaleString('pt-BR')} XP
-          </Text>
-        </View>
-        <View style={styles.levelBar}>
-          <ProgressBar height={14} shine={3} progress={to} fillStyle={fillStyle} accessibilityLabel={`Nível ${mockUser.nivel}`} />
-        </View>
-      </View>
-
-      <View style={{ flex: 1 }} />
+      </Rolavel>
       <View style={styles.actions}>
-        <FeraButton label="Próxima missão" onPress={() => router.replace(`/missao/${numero + 1}`)} />
-        <Pressable accessibilityRole="link" onPress={goHome} style={styles.link}>
-          <Text style={styles.linkText}>Voltar pra trilha</Text>
-        </Pressable>
+        {proxima ? (
+          <>
+            <FeraButton label="Próxima missão" onPress={() => router.replace(`/missao/${proxima}`)} />
+            <Pressable accessibilityRole="link" onPress={goHome} style={styles.link}>
+              <Text style={styles.linkText}>Voltar pra trilha</Text>
+            </Pressable>
+          </>
+        ) : (
+          <FeraButton label="Voltar pra trilha" onPress={goHome} />
+        )}
       </View>
     </View>
   );

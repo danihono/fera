@@ -1,6 +1,6 @@
 // 02a · Onboarding — Rugi — canvas artboard Onb1.dc.html
 import { router } from 'expo-router';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated, {
   Easing,
@@ -18,8 +18,15 @@ import { Rugi } from '@/components/Rugi';
 import { app } from '@/data/store';
 import { colors, fonts, radius, sizes, space } from '@/theme';
 
+/** Palco do Rugi no design (300 × 330) + balão (~100) + espaço entre eles (18). */
+const STAGE_H = 330;
+const BUBBLE_E_GAP = 118;
+
 export default function OnboardingRugi() {
   const insets = useSafeAreaInsets();
+  // Celular baixo: o palco encolhe pra caber; no tamanho do design fica em 1.
+  const [alturaCentro, setAlturaCentro] = useState(0);
+  const escala = alturaCentro ? Math.max(0.6, Math.min(1, (alturaCentro - BUBBLE_E_GAP) / STAGE_H)) : 1;
   // "Pular" e "Já tenho conta" contam como onboarding feito.
   const skip = () => {
     app.setOnboarded();
@@ -66,7 +73,7 @@ export default function OnboardingRugi() {
         </Pressable>
       </View>
 
-      <View style={styles.center}>
+      <View style={styles.center} onLayout={(e) => setAlturaCentro(e.nativeEvent.layout.height)}>
         <Animated.View style={[styles.bubble, popStyle]}>
           <Text style={styles.bubbleText}>
             E aí! Eu sou o Rugi. <Text style={{ color: colors.red }}>Bora virar fera?</Text>
@@ -74,12 +81,14 @@ export default function OnboardingRugi() {
           <View style={styles.tail} />
         </Animated.View>
 
-        <View style={styles.stage}>
-          <View style={styles.halo} />
-          <Ellipse width={130} height={14} color={colors.border} style={styles.floorShadow} />
-          <Animated.View style={[{ marginBottom: 10 }, waveStyle]}>
-            <Rugi mood="acenando" width={250} />
-          </Animated.View>
+        <View style={{ height: STAGE_H * escala, justifyContent: 'flex-end' }}>
+          <View style={[styles.stage, escala < 1 && { transform: [{ scale: escala }], transformOrigin: '50% 100%' }]}>
+            <View style={styles.halo} />
+            <Ellipse width={130} height={14} color={colors.border} style={styles.floorShadow} />
+            <Animated.View style={[{ marginBottom: 10 }, waveStyle]}>
+              <Rugi mood="acenando" width={250} />
+            </Animated.View>
+          </View>
         </View>
       </View>
 

@@ -1,5 +1,7 @@
+import { Fragment } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
+import type { Fluxo as F } from '@/ia/tipos';
 import { colors, fonts, radius, sizes } from '@/theme';
 
 function Seta({ label }: { label?: string }) {
@@ -29,33 +31,37 @@ function Caixa({ texto, sub, tipo = 'passo' }: { texto: string; sub?: string; ti
   );
 }
 
-/** Caminho pra achar a raiz, de cima pra baixo. */
-export function Fluxo() {
+/** O caminho de cima pra baixo; numa pergunta, o "sim" segue e o "não" sai pro lado. */
+export function Fluxo({ d }: { d: F }) {
   return (
     <View style={styles.wrap}>
-      <Caixa tipo="inicio" texto="f(x) = ax + b" sub="começa aqui" />
-      <Seta />
-      <Caixa texto="Troca f(x) por 0" sub="ax + b = 0" />
-      <Seta />
-      <Caixa tipo="pergunta" texto="O a é diferente de zero?" />
-      <View style={styles.ramos}>
-        <View style={styles.ramo}>
-          <Seta label="sim" />
-          <Caixa texto="Isola o x" sub="x = −b / a" />
-          <Seta />
-          <Caixa tipo="fim" texto="Achou a raiz!" sub="confere: f(x) = 0" />
-        </View>
-        <View style={styles.ramo}>
-          <Seta label="não" />
-          <Caixa tipo="nao" texto="Não é do 1º grau" sub="vira f(x) = b (reta deitada)" />
-        </View>
-      </View>
+      {d.titulo ? <Text style={styles.lead}>{d.titulo}</Text> : null}
+      {d.etapas.map((e, i) => {
+        const ultima = i === d.etapas.length - 1;
+        return (
+          <Fragment key={i}>
+            <Caixa tipo={e.tipo} texto={e.texto} sub={e.sub ?? undefined} />
+            {e.tipo === 'pergunta' && e.seNao ? (
+              <View style={styles.ramos}>
+                <View style={styles.ramo}>{!ultima && <Seta label="sim" />}</View>
+                <View style={styles.ramo}>
+                  <Seta label="não" />
+                  <Caixa tipo="nao" texto={e.seNao.texto} sub={e.seNao.sub ?? undefined} />
+                </View>
+              </View>
+            ) : (
+              !ultima && <Seta />
+            )}
+          </Fragment>
+        );
+      })}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   wrap: { alignItems: 'center', paddingVertical: 8 },
+  lead: { alignSelf: 'stretch', marginBottom: 12, fontFamily: fonts.nunito800, fontSize: 16, color: colors.textMuted },
   caixa: { alignSelf: 'stretch', minHeight: 64, borderRadius: radius.button, borderWidth: sizes.borderWidth, paddingHorizontal: 14, paddingVertical: 10, alignItems: 'center', justifyContent: 'center', gap: 2 },
   pergunta: { borderStyle: 'dashed', borderRadius: radius.pill },
   caixaText: { fontFamily: fonts.nunito900, fontSize: 16, textAlign: 'center' },

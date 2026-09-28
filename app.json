@@ -3,14 +3,17 @@
     "name": "Fera",
     "slug": "fera",
     "scheme": "fera",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "backgroundColor": "#FFFFFF",
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.honor.fera"
+      "bundleIdentifier": "com.honor.fera",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "package": "com.honor.fera",
@@ -20,7 +23,13 @@
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "android.permission.CAMERA"
+      ],
+      "blockedPermissions": [
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -36,7 +45,15 @@
           "imageWidth": 200
         }
       ],
-      "expo-image"
+      "expo-image",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "O Fera usa suas fotos pra ler a matéria do caderno, do livro ou da lousa.",
+          "cameraPermission": "O Fera usa a câmera pra fotografar a matéria da prova.",
+          "microphonePermission": false
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

@@ -1,6 +1,7 @@
 // 02c · Onboarding — Data — canvas artboard Onb3.dc.html
+import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FeraButton } from '@/components/FeraButton';
 import { ChevronLeftIcon, ChevronRightIcon, FireIcon } from '@/components/icons';
@@ -77,10 +78,12 @@ export default function OnboardingData() {
     setSelected(d);
   };
 
+  // A trilha sai do conteúdo da prova: depois da data, vai direto pro "Manda o conteúdo" (04), por cima da Início.
   const finish = () => {
     app.setProva({ data: selected, minutosDia: minutes });
     app.setOnboarded();
     goHome();
+    router.push('/prova/nova');
   };
 
   return (
@@ -96,104 +99,107 @@ export default function OnboardingData() {
     >
       <OnboardingHeader step={3} />
 
-      <Text style={styles.title}>Quando é?</Text>
+      {/* No tamanho do design tudo cabe e nada rola; em celular baixo, rola (o botão fica sempre embaixo). */}
+      <ScrollView style={styles.body} contentContainerStyle={styles.bodyContent} showsVerticalScrollIndicator={false}>
+        <Text style={styles.title}>Quando é?</Text>
 
-      <View style={styles.quickRow}>
-        {QUICK.map((q, i) => {
-          const on = i === quick;
-          return (
-            <TapScale
-              key={q.label}
-              scale={0.95}
-              accessibilityRole="button"
-              accessibilityState={{ selected: on }}
-              onPress={() => pickQuick(i)}
-              style={[styles.quick, on && styles.quickOn]}
-            >
-              <Text style={[styles.quickLabel, on && { color: colors.redText }]}>{q.label}</Text>
-            </TapScale>
-          );
-        })}
-      </View>
-
-      <View style={styles.calendar}>
-        <View style={styles.calHeader}>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Semana anterior"
-            disabled={week === 0}
-            onPress={() => setWeek((w) => w - 1)}
-            style={styles.calNav}
-          >
-            <ChevronLeftIcon size={18} color={colors.textMuted} />
-          </Pressable>
-          <Text style={styles.calMonth}>
-            {MONTHS[days[0].getMonth()]} {days[0].getFullYear()}
-          </Text>
-          <Pressable accessibilityRole="button" accessibilityLabel="Próxima semana" onPress={() => setWeek((w) => w + 1)} style={styles.calNav}>
-            <ChevronRightIcon size={18} color={colors.textMuted} />
-          </Pressable>
-        </View>
-
-        <View style={styles.days}>
-          {days.map((d) => {
-            const offset = daysBetween(today, d);
-            const on = offset === daysLeft;
-            const isToday = offset === 0;
+        <View style={styles.quickRow}>
+          {QUICK.map((q, i) => {
+            const on = i === quick;
             return (
               <TapScale
-                key={d.getTime()}
+                key={q.label}
                 scale={0.95}
                 accessibilityRole="button"
-                accessibilityState={{ selected: on, disabled: isToday }}
-                disabled={isToday}
-                onPress={() => pickDay(d)}
-                style={[styles.day, on && styles.dayOn]}
+                accessibilityState={{ selected: on }}
+                onPress={() => pickQuick(i)}
+                style={[styles.quick, on && styles.quickOn]}
               >
-                <Text style={[styles.dayName, on && { color: colors.white }]}>{WEEKDAYS[d.getDay()]}</Text>
-                <Text style={[styles.dayNum, on && styles.dayNumOn]}>{d.getDate()}</Text>
-                {isToday && <View style={styles.todayDot} />}
+                <Text style={[styles.quickLabel, on && { color: colors.redText }]}>{q.label}</Text>
               </TapScale>
             );
           })}
         </View>
 
-        <View style={styles.countdown}>
-          <FireIcon size={18} core={false} />
-          <Text style={styles.countdownText}>{countdownText(daysLeft)}</Text>
-        </View>
-      </View>
-
-      <Text style={styles.subtitle}>Quanto tempo por dia?</Text>
-
-      <View style={styles.minutesRow}>
-        {MINUTES.map(({ min, label }) => {
-          const on = min === minutes;
-          return (
-            <TapScale
-              key={min}
-              scale={0.95}
+        <View style={styles.calendar}>
+          <View style={styles.calHeader}>
+            <Pressable
               accessibilityRole="button"
-              accessibilityState={{ selected: on }}
-              onPress={() => setMinutes(min)}
-              style={[styles.minute, on && styles.minuteOn]}
+              accessibilityLabel="Semana anterior"
+              disabled={week === 0}
+              onPress={() => setWeek((w) => w - 1)}
+              style={styles.calNav}
             >
-              <Text style={[styles.minuteNum, on && styles.minuteNumOn]}>
-                {min}
-                <Text style={styles.minuteUnit}> min</Text>
-              </Text>
-              <Text style={[styles.minuteLabel, on && styles.minuteLabelOn]}>{label}</Text>
-            </TapScale>
-          );
-        })}
-      </View>
+              <ChevronLeftIcon size={18} color={colors.textMuted} />
+            </Pressable>
+            <Text style={styles.calMonth}>
+              {MONTHS[days[0].getMonth()]} {days[0].getFullYear()}
+            </Text>
+            <Pressable accessibilityRole="button" accessibilityLabel="Próxima semana" onPress={() => setWeek((w) => w + 1)} style={styles.calNav}>
+              <ChevronRightIcon size={18} color={colors.textMuted} />
+            </Pressable>
+          </View>
 
-      <View style={styles.rugiRow}>
-        <Rugi mood="forca" width={66} accessibilityLabel="Rugi" />
-        <View style={styles.bubble}>
-          <Text style={styles.bubbleText}>Relaxa, eu monto o plano.</Text>
+          <View style={styles.days}>
+            {days.map((d) => {
+              const offset = daysBetween(today, d);
+              const on = offset === daysLeft;
+              const isToday = offset === 0;
+              return (
+                <TapScale
+                  key={d.getTime()}
+                  scale={0.95}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: on, disabled: isToday }}
+                  disabled={isToday}
+                  onPress={() => pickDay(d)}
+                  style={[styles.day, on && styles.dayOn]}
+                >
+                  <Text style={[styles.dayName, on && { color: colors.white }]}>{WEEKDAYS[d.getDay()]}</Text>
+                  <Text style={[styles.dayNum, on && styles.dayNumOn]}>{d.getDate()}</Text>
+                  {isToday && <View style={styles.todayDot} />}
+                </TapScale>
+              );
+            })}
+          </View>
+
+          <View style={styles.countdown}>
+            <FireIcon size={18} core={false} />
+            <Text style={styles.countdownText}>{countdownText(daysLeft)}</Text>
+          </View>
         </View>
-      </View>
+
+        <Text style={styles.subtitle}>Quanto tempo por dia?</Text>
+
+        <View style={styles.minutesRow}>
+          {MINUTES.map(({ min, label }) => {
+            const on = min === minutes;
+            return (
+              <TapScale
+                key={min}
+                scale={0.95}
+                accessibilityRole="button"
+                accessibilityState={{ selected: on }}
+                onPress={() => setMinutes(min)}
+                style={[styles.minute, on && styles.minuteOn]}
+              >
+                <Text style={[styles.minuteNum, on && styles.minuteNumOn]}>
+                  {min}
+                  <Text style={styles.minuteUnit}> min</Text>
+                </Text>
+                <Text style={[styles.minuteLabel, on && styles.minuteLabelOn]}>{label}</Text>
+              </TapScale>
+            );
+          })}
+        </View>
+
+        <View style={styles.rugiRow}>
+          <Rugi mood="forca" width={66} accessibilityLabel="Rugi" />
+          <View style={styles.bubble}>
+            <Text style={styles.bubbleText}>Relaxa, eu monto o plano.</Text>
+          </View>
+        </View>
+      </ScrollView>
 
       <FeraButton label="Criar minha trilha" onPress={finish} />
     </View>
@@ -203,7 +209,10 @@ export default function OnboardingData() {
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.white, paddingHorizontal: space.gutter },
   title: { ...type.screenTitle, marginTop: 22, lineHeight: 31, color: colors.text },
-  quickRow: { marginTop: 16, flexDirection: 'row', gap: 8 },
+  body: { flex: 1, marginHorizontal: -space.gutter },
+  bodyContent: { flexGrow: 1, paddingHorizontal: space.gutter },
+  // Quebra linha só em tela estreita (no design os 3 cabem numa linha).
+  quickRow: { marginTop: 16, flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   quick: {
     height: 40,
     paddingHorizontal: 14,
@@ -275,7 +284,8 @@ const styles = StyleSheet.create({
   minuteUnit: { fontSize: 16, lineHeight: 16 },
   minuteLabel: { fontFamily: fonts.nunito700, fontSize: 13, color: colors.textMuted },
   minuteLabelOn: { fontFamily: fonts.nunito800, color: colors.redText },
-  rugiRow: { flex: 1, flexDirection: 'row', alignItems: 'flex-end', gap: 6, paddingBottom: 14 },
+  // flexGrow (não flex: 1): ocupa a sobra no design e não encolhe por cima dos cards quando falta altura.
+  rugiRow: { flexGrow: 1, flexDirection: 'row', alignItems: 'flex-end', gap: 6, paddingBottom: 14 },
   bubble: {
     marginBottom: 34,
     backgroundColor: colors.offWhite,

@@ -7,18 +7,21 @@ import { BoltIcon, ExamsFilledIcon, FireIcon, GearIcon } from '@/components/icon
 import { InfoSheet } from '@/components/InfoSheet';
 import { MedalGrid } from '@/components/Medal';
 import { ProgressBar } from '@/components/ProgressBar';
-import { CONQUISTAS, type Conquista } from '@/data/conquistas';
-import { useApp } from '@/data/store';
-import { mockUser } from '@/data/mock';
+import { conquistasDe, type Conquista } from '@/data/conquistas';
+import { diasAte, nivelDe, nomeDe, streakAtual, useApp, XP_POR_NIVEL } from '@/data/store';
 import { colors, fonts, radius, sizes, solidShadow, space, type } from '@/theme';
 
 const fmt = (n: number) => n.toLocaleString('pt-BR');
 
 export default function Perfil() {
   const insets = useSafeAreaInsets();
-  const u = mockUser;
-  const { nome, premium } = useApp();
-  const faltam = u.xpProximoNivel - u.xpNivel;
+  const estado = useApp();
+  const { premium, xp, serie, turma, provas } = estado;
+  const nome = nomeDe(estado);
+  const n = nivelDe(xp);
+  const faltam = XP_POR_NIVEL - n.noNivel;
+  const usuario = `@${nome.toLocaleLowerCase('pt-BR').normalize('NFD').replace(/[^a-z0-9]+/g, '.').replace(/^\.|\.$/g, '') || 'fera'}`;
+  const provasFeitas = provas.filter((p) => diasAte(p.data) < 0).length;
   const [medalha, setMedalha] = useState<Conquista | null>(null);
 
   return (
@@ -49,20 +52,20 @@ export default function Perfil() {
       <View style={styles.identity}>
         <View>
           <View style={styles.avatar}>
-            <Text style={styles.avatarText}>{nome.trim().charAt(0).toUpperCase() || u.inicial}</Text>
+            <Text style={styles.avatarText}>{nome.charAt(0).toUpperCase()}</Text>
           </View>
           <View style={styles.levelBadge}>
-            <Text style={styles.levelBadgeText}>{u.nivel}</Text>
+            <Text style={styles.levelBadgeText}>{n.nivel}</Text>
           </View>
         </View>
         <View style={styles.identityTexts}>
           <Text style={styles.name}>{nome}</Text>
-          <Text style={styles.handle}>
-            {u.usuario} · {u.turma}
+          <Text style={styles.handle} numberOfLines={1}>
+            {usuario} · {turma?.nome ?? serie}
           </Text>
           <View style={styles.levelTag}>
             <Text style={styles.levelTagText}>
-              Nível {u.nivel} · {u.tituloNivel}
+              Nível {n.nivel} · {n.titulo}
             </Text>
           </View>
         </View>
@@ -70,17 +73,17 @@ export default function Perfil() {
 
       <View style={styles.levelBlock}>
         <View style={{ flexDirection: 'row' }}>
-          <ProgressBar height={14} shine={3} progress={u.xpNivel / u.xpProximoNivel} accessibilityLabel={`Nível ${u.nivel}`} />
+          <ProgressBar height={14} shine={3} progress={n.noNivel / XP_POR_NIVEL} accessibilityLabel={`Nível ${n.nivel}`} />
         </View>
         <Text style={styles.levelLeft}>
-          {faltam} XP pro nível {u.nivel + 1}
+          {faltam} XP pro nível {n.nivel + 1}
         </Text>
       </View>
 
       <View style={styles.cards}>
-        <StatCard icon={<FireIcon size={26} core={false} />} value={String(u.streak)} label="dias seguidos" />
-        <StatCard icon={<BoltIcon size={26} />} value={fmt(u.xpTotal)} label="XP total" />
-        <StatCard icon={<ExamsFilledIcon size={26} />} value={String(u.provasFeitas)} label="provas feitas" />
+        <StatCard icon={<FireIcon size={26} core={false} />} value={String(streakAtual(estado))} label="dias seguidos" />
+        <StatCard icon={<BoltIcon size={26} />} value={fmt(xp)} label="XP total" />
+        <StatCard icon={<ExamsFilledIcon size={26} />} value={String(provasFeitas)} label="provas feitas" />
       </View>
 
       <View style={styles.sectionRow}>
@@ -91,7 +94,7 @@ export default function Perfil() {
       </View>
 
       <View style={styles.medals}>
-        <MedalGrid items={CONQUISTAS.slice(0, 8)} onPress={setMedalha} />
+        <MedalGrid items={conquistasDe(estado).slice(0, 8)} onPress={setMedalha} />
       </View>
 
       {medalha && (

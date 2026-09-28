@@ -2,13 +2,14 @@ import { useRef, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { FeraButton } from '@/components/FeraButton';
 import { Rugi } from '@/components/Rugi';
-import { slides } from '@/data/materiais';
+import type { Slides as S } from '@/ia/tipos';
 import { colors, fonts, radius, space } from '@/theme';
 
 const MOODS = ['acenando', 'forca', 'pensativo', 'comemorando', 'fogo'] as const;
 
 /** Aula em cards: arrasta pro lado ou usa os botões. */
-export function Slides() {
+export function Slides({ d }: { d: S }) {
+  const slides = d.slides;
   const { width } = useWindowDimensions();
   const w = width - 2 * space.gutter;
   const ref = useRef<ScrollView>(null);
@@ -34,7 +35,7 @@ export function Slides() {
         {slides.map((s, k) => {
           const red = k === 0 || k === slides.length - 1;
           return (
-            <View key={s.titulo} style={[styles.slide, { width: w }, red && { backgroundColor: colors.red }]}>
+            <View key={k} style={[styles.slide, { width: w }, red && { backgroundColor: colors.red }]}>
               <Text style={[styles.n, red && { color: colors.white }]}>
                 {k + 1}/{slides.length}
               </Text>
@@ -53,7 +54,7 @@ export function Slides() {
 
       <View style={styles.dots}>
         {slides.map((s, k) => (
-          <View key={s.titulo} style={[styles.dot, k === i && styles.dotOn]} />
+          <View key={k} style={[styles.dot, k === i && styles.dotOn]} />
         ))}
       </View>
       <View style={styles.nav}>
@@ -69,7 +70,7 @@ const styles = StyleSheet.create({
   n: { fontFamily: fonts.nunito900, fontSize: 12, letterSpacing: 1, color: colors.textMuted },
   title: { fontFamily: fonts.fredoka700, fontSize: 30, lineHeight: 33, color: colors.text },
   text: { fontFamily: fonts.nunito700, fontSize: 17, lineHeight: 24, color: colors.text },
-  destaque: { alignSelf: 'flex-start', marginTop: 8, paddingHorizontal: 16, height: 52, borderRadius: 16, backgroundColor: colors.white, justifyContent: 'center' },
+  destaque: { alignSelf: 'flex-start', maxWidth: '100%', marginTop: 8, paddingHorizontal: 16, paddingVertical: 8, minHeight: 52, borderRadius: 16, backgroundColor: colors.white, justifyContent: 'center' },
   destaqueText: { fontFamily: fonts.fredoka700, fontSize: 24, color: colors.red },
   rugi: { position: 'absolute', right: 16, bottom: 0 },
   dots: { flexDirection: 'row', justifyContent: 'center', gap: 6 },

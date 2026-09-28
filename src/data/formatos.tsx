@@ -12,8 +12,9 @@ import {
   StepsIcon,
   TimerIcon,
 } from '@/components/icons';
+import type { FormatoId } from '@/ia/tipos';
 
-export type FormatoId = 'resumo' | 'explicacao' | 'mapa' | 'quiz' | 'slides' | 'grafico' | 'fluxo' | 'imagens' | 'teste' | 'simulado';
+export type { FormatoId };
 
 export type Formato = {
   id: FormatoId;
@@ -22,6 +23,8 @@ export type Formato = {
   premium: boolean;
   /** Vira missão (trilha) em vez de um material pra ler. */
   pratica?: boolean;
+  /** Sempre vem (as missões da trilha): não conta no limite. */
+  sempre?: boolean;
   icone: (color: string) => ReactNode;
 };
 
@@ -29,7 +32,7 @@ export const FORMATOS: Formato[] = [
   { id: 'resumo', nome: 'Resumo', descricao: 'O essencial em tópicos curtos', premium: false, icone: (c) => <FileIcon size={22} color={c} /> },
   { id: 'explicacao', nome: 'Explicação', descricao: 'Passo a passo, do zero', premium: false, icone: (c) => <StepsIcon color={c} /> },
   { id: 'mapa', nome: 'Mapa mental', descricao: 'Quadro pra organizar as ideias', premium: false, icone: (c) => <MindMapIcon color={c} /> },
-  { id: 'quiz', nome: 'Quiz', descricao: 'Missões de 5 min na trilha', premium: false, pratica: true, icone: (c) => <QuizIcon color={c} /> },
+  { id: 'quiz', nome: 'Quiz', descricao: 'Missões de 5 min na trilha', premium: false, pratica: true, sempre: true, icone: (c) => <QuizIcon color={c} /> },
   { id: 'slides', nome: 'Slides', descricao: 'Aula em cards pra passar o dedo', premium: true, icone: (c) => <SlidesIcon color={c} /> },
   { id: 'grafico', nome: 'Gráficos', descricao: 'Ver a matéria em números e curvas', premium: true, icone: (c) => <ChartIcon color={c} /> },
   { id: 'fluxo', nome: 'Fluxograma', descricao: 'O caminho da resolução em etapas', premium: true, icone: (c) => <FlowIcon color={c} /> },
@@ -39,6 +42,8 @@ export const FORMATOS: Formato[] = [
 ];
 
 export const formato = (id: string) => FORMATOS.find((f) => f.id === id);
+
+export const ehFormato = (id: string): id is FormatoId => FORMATOS.some((f) => f.id === id);
 
 /** Quantos formatos dá pra escolher por prova. */
 export const LIMITE_FORMATOS = { gratis: 2, premium: 4 };

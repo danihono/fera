@@ -10,6 +10,7 @@ import { BanIcon, BookWaveIcon, ClipboardCheckIcon, CloseIcon, HeartWaveIcon, Sp
 import { Rugi } from '@/components/Rugi';
 import { InfoSheet } from '@/components/InfoSheet';
 import { TapScale } from '@/components/TapScale';
+import { Rolavel } from '@/components/Rolavel';
 import { app, useApp } from '@/data/store';
 import { pingPong, useLoop } from '@/lib/anim';
 import { colors, fonts, radius, sizes, solidShadow, space } from '@/theme';
@@ -48,77 +49,78 @@ export default function Premium() {
         { paddingTop: insets.top + sizes.topExtra, paddingBottom: Math.max(insets.bottom, sizes.bottomExtra) + sizes.bottomExtra - sizes.shadow },
       ]}
     >
-      <View style={styles.header}>
-        <Pressable accessibilityRole="button" accessibilityLabel="Fechar" onPress={() => router.back()} style={styles.close}>
-          <CloseIcon size={24} strokeWidth={3} color={colors.iconMuted} />
-        </Pressable>
-        <Pressable accessibilityRole="button" onPress={() => setSheet('restaurar')} style={styles.restore}>
-          <Text style={styles.restoreText}>Restaurar compra</Text>
-        </Pressable>
-      </View>
-
-      <View style={styles.hero}>
-        <View style={styles.halo} />
-        <Twinkle t={tw[0]} size={18} left={76} top={30} color={colors.red} />
-        <Twinkle t={tw[1]} size={14} left={272} top={50} color={colors.redShine} />
-        <Twinkle t={tw[2]} size={16} left={282} top={118} color={colors.red} />
-        <View style={{ width: 132 }}>
-          <Rugi mood="forca" width={132} accessibilityLabel="Rugi usando uma coroa vermelha e branca" />
-          <Animated.View style={[styles.crown, crownStyle]}>
-            <Svg width={62} height={46} viewBox="0 0 62 46">
-              <Path d="M8 40 L4 12 L19 24 L31 6 L43 24 L58 12 L54 40 Z" fill={colors.white} stroke={colors.bookInk} strokeWidth={3.5} strokeLinejoin="round" />
-              <Path d="M8 40 H54 V34 H8 Z" fill={colors.red} stroke={colors.bookInk} strokeWidth={3.5} strokeLinejoin="round" />
-              <Circle cx={31} cy={6} r={4} fill={colors.red} stroke={colors.bookInk} strokeWidth={2.5} />
-              <Circle cx={4} cy={12} r={3.2} fill={colors.red} stroke={colors.bookInk} strokeWidth={2.5} />
-              <Circle cx={58} cy={12} r={3.2} fill={colors.red} stroke={colors.bookInk} strokeWidth={2.5} />
-              <Circle cx={31} cy={26} r={4} fill={colors.red} />
-            </Svg>
-          </Animated.View>
+      {/* O topo vai junto no rolável: a coroa do Rugi passa por cima da área do topo sem ser cortada. */}
+      <Rolavel>
+        <View style={styles.header}>
+          <Pressable accessibilityRole="button" accessibilityLabel="Fechar" onPress={() => router.back()} style={styles.close}>
+            <CloseIcon size={24} strokeWidth={3} color={colors.iconMuted} />
+          </Pressable>
+          <Pressable accessibilityRole="button" onPress={() => setSheet('restaurar')} style={styles.restore}>
+            <Text style={styles.restoreText}>Restaurar compra</Text>
+          </Pressable>
         </View>
-      </View>
 
-      <View style={styles.brand}>
-        <Text style={styles.logo}>
-          Fera<Text style={{ color: colors.text }}>+</Text>
-        </Text>
-        <Text style={styles.tagline}>Estuda sem limite. Vira fera mais rápido.</Text>
-      </View>
-
-      <View style={styles.benefits}>
-        {BENEFITS.map((b) => (
-          <View key={b.text} style={styles.benefit}>
-            <View style={styles.benefitIcon}>{b.icon}</View>
-            <Text style={styles.benefitText}>{b.text}</Text>
+        <View style={styles.hero}>
+          <View style={styles.halo} />
+          <Twinkle t={tw[0]} size={18} left={76} top={30} color={colors.red} />
+          <Twinkle t={tw[1]} size={14} left={272} top={50} color={colors.redShine} />
+          <Twinkle t={tw[2]} size={16} left={282} top={118} color={colors.red} />
+          <View style={{ width: 132 }}>
+            <Rugi mood="forca" width={132} accessibilityLabel="Rugi usando uma coroa vermelha e branca" />
+            <Animated.View style={[styles.crown, crownStyle]}>
+              <Svg width={62} height={46} viewBox="0 0 62 46">
+                <Path d="M8 40 L4 12 L19 24 L31 6 L43 24 L58 12 L54 40 Z" fill={colors.white} stroke={colors.bookInk} strokeWidth={3.5} strokeLinejoin="round" />
+                <Path d="M8 40 H54 V34 H8 Z" fill={colors.red} stroke={colors.bookInk} strokeWidth={3.5} strokeLinejoin="round" />
+                <Circle cx={31} cy={6} r={4} fill={colors.red} stroke={colors.bookInk} strokeWidth={2.5} />
+                <Circle cx={4} cy={12} r={3.2} fill={colors.red} stroke={colors.bookInk} strokeWidth={2.5} />
+                <Circle cx={58} cy={12} r={3.2} fill={colors.red} stroke={colors.bookInk} strokeWidth={2.5} />
+                <Circle cx={31} cy={26} r={4} fill={colors.red} />
+              </Svg>
+            </Animated.View>
           </View>
-        ))}
-      </View>
+        </View>
 
-      <View style={styles.plans} accessibilityRole="radiogroup" accessibilityLabel="Planos">
-        {PLANS.map((p) => {
-          const on = p.id === plan;
-          return (
-            <TapScale
-              key={p.id}
-              scale={0.97}
-              accessibilityRole="radio"
-              accessibilityState={{ checked: on }}
-              onPress={() => setPlan(p.id)}
-              style={[styles.plan, on && styles.planOn]}
-            >
-              {'badge' in p && (
-                <View style={styles.planBadge}>
-                  <Text style={styles.planBadgeText}>{p.badge}</Text>
-                </View>
-              )}
-              <Text style={[styles.planName, on && { color: colors.redText }]}>{p.name}</Text>
-              <Text style={styles.planPrice}>{p.price}</Text>
-              <Text style={[styles.planNote, on && { fontFamily: fonts.nunito800, color: colors.redText }]}>{p.note}</Text>
-            </TapScale>
-          );
-        })}
-      </View>
+        <View style={styles.brand}>
+          <Text style={styles.logo}>
+            Fera<Text style={{ color: colors.text }}>+</Text>
+          </Text>
+          <Text style={styles.tagline}>Estuda sem limite. Vira fera mais rápido.</Text>
+        </View>
 
-      <View style={{ flex: 1 }} />
+        <View style={styles.benefits}>
+          {BENEFITS.map((b) => (
+            <View key={b.text} style={styles.benefit}>
+              <View style={styles.benefitIcon}>{b.icon}</View>
+              <Text style={styles.benefitText}>{b.text}</Text>
+            </View>
+          ))}
+        </View>
+
+        <View style={styles.plans} accessibilityRole="radiogroup" accessibilityLabel="Planos">
+          {PLANS.map((p) => {
+            const on = p.id === plan;
+            return (
+              <TapScale
+                key={p.id}
+                scale={0.97}
+                accessibilityRole="radio"
+                accessibilityState={{ checked: on }}
+                onPress={() => setPlan(p.id)}
+                style={[styles.plan, on && styles.planOn]}
+              >
+                {'badge' in p && (
+                  <View style={styles.planBadge}>
+                    <Text style={styles.planBadgeText}>{p.badge}</Text>
+                  </View>
+                )}
+                <Text style={[styles.planName, on && { color: colors.redText }]}>{p.name}</Text>
+                <Text style={styles.planPrice}>{p.price}</Text>
+                <Text style={[styles.planNote, on && { fontFamily: fonts.nunito800, color: colors.redText }]}>{p.note}</Text>
+              </TapScale>
+            );
+          })}
+        </View>
+      </Rolavel>
       <FeraButton label={premium ? 'Você já é Fera+' : 'Quero ser Fera+'} disabled={premium} onPress={() => setSheet('comprou')} />
 
       {/* Prévia: sem pagamento de verdade ainda. */}

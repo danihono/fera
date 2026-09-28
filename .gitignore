@@ -40,3 +40,10 @@ yarn-error.*
 /ios
 /android
 site/
+
+# Firebase
+functions/lib/
+.firebase/
+*-debug.log
+.secret.local
+functions/.secret.local

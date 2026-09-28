@@ -1,7 +1,7 @@
 // 04 · Nova prova — canvas artboard NovaProva.dc.html
 import { router } from 'expo-router';
-import { Fragment, type ReactNode } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Fragment, useState, type ReactNode } from 'react';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   CalendarIcon,
@@ -13,8 +13,10 @@ import {
   PencilIcon,
   SubjectIcon,
 } from '@/components/icons';
+import { InfoSheet } from '@/components/InfoSheet';
 import { Rugi } from '@/components/Rugi';
 import { SquareButton } from '@/components/SquareButton';
+import { escolherPdf, tirarFoto } from '@/data/rascunho';
 import { useApp } from '@/data/store';
 import { shortDate } from '@/lib/dates';
 import { colors, fonts, radius, sizes, solidShadow, space, type } from '@/theme';
@@ -25,8 +27,12 @@ const CURRENT = 2;
 export default function NovaProva() {
   const insets = useSafeAreaInsets();
   const { prova } = useApp();
-  // Depois do conteúdo, escolhe os formatos de estudo (prévia fora do design).
-  const gerar = () => router.push('/prova/formatos');
+  const [erro, setErro] = useState<string | null>(null);
+  // Capturou alguma coisa → confere o que mandou (prova/conteudo) → formatos → Gerando.
+  const capturar = (acao: () => Promise<boolean>) => () =>
+    acao()
+      .then((ok) => ok && router.push('/prova/conteudo'))
+      .catch((e: Error) => setErro(e.message || 'Não deu pra abrir. Tenta de novo.'));
 
   return (
     <View
@@ -43,64 +49,69 @@ export default function NovaProva() {
         <View style={{ width: sizes.touch }} />
       </View>
 
-      <View style={styles.steps} accessibilityLabel="Etapas">
-        {STEPS.map((label, i) => (
-          <Fragment key={label}>
-            {i > 0 && <View style={styles.stepLine} />}
-            <View style={styles.step}>
-              {i < CURRENT ? (
-                <View style={styles.stepDone}>
-                  <CheckIcon size={16} color={colors.white} />
-                </View>
-              ) : (
-                <View style={styles.stepCurrent}>
-                  <Text style={styles.stepNumber}>{i + 1}</Text>
-                </View>
-              )}
-              <Text style={[styles.stepLabel, i === CURRENT && styles.stepLabelCurrent]}>{label}</Text>
-            </View>
-          </Fragment>
-        ))}
-      </View>
-
-      <View style={styles.chips}>
-        <View style={styles.chip}>
-          <SubjectIcon subject={prova.icone} size={18} color={colors.red} />
-          <Text style={styles.chipText}>{prova.materia}</Text>
+      {/* No tamanho do design nada rola; em celular baixo, rola em vez de o Rugi cobrir os cards. */}
+      <ScrollView style={styles.body} contentContainerStyle={styles.bodyContent} showsVerticalScrollIndicator={false}>
+        <View style={styles.steps} accessibilityLabel="Etapas">
+          {STEPS.map((label, i) => (
+            <Fragment key={label}>
+              {i > 0 && <View style={styles.stepLine} />}
+              <View style={styles.step}>
+                {i < CURRENT ? (
+                  <View style={styles.stepDone}>
+                    <CheckIcon size={16} color={colors.white} />
+                  </View>
+                ) : (
+                  <View style={styles.stepCurrent}>
+                    <Text style={styles.stepNumber}>{i + 1}</Text>
+                  </View>
+                )}
+                <Text style={[styles.stepLabel, i === CURRENT && styles.stepLabelCurrent]}>{label}</Text>
+              </View>
+            </Fragment>
+          ))}
         </View>
-        <View style={styles.chip}>
-          <CalendarIcon size={18} color={colors.red} />
-          <Text style={styles.chipText}>{shortDate(prova.data)}</Text>
+
+        <View style={styles.chips}>
+          <View style={styles.chip}>
+            <SubjectIcon subject={prova.icone} size={18} color={colors.red} />
+            <Text style={styles.chipText}>{prova.materia}</Text>
+          </View>
+          <View style={styles.chip}>
+            <CalendarIcon size={18} color={colors.red} />
+            <Text style={styles.chipText}>{shortDate(prova.data)}</Text>
+          </View>
         </View>
-      </View>
 
-      <Text style={styles.title}>Manda o conteúdo</Text>
-      <Text style={styles.subtitle}>O que vai cair na prova. Pode ser mais de um.</Text>
+        <Text style={styles.title}>Manda o conteúdo</Text>
+        <Text style={styles.subtitle}>O que vai cair na prova. Pode ser mais de um.</Text>
 
-      <View style={styles.options}>
-        <OptionCard
-          highlighted
-          icon={<CameraIcon size={28} color={colors.white} />}
-          title="Tirar foto"
-          description="Do caderno, livro ou lousa"
-          badge="Mais rápido"
-          onPress={gerar}
-        />
-        <OptionCard icon={<FileIcon size={28} color={colors.red} />} title="Enviar PDF" description="Slides, apostila ou resumo" onPress={gerar} />
-        <OptionCard
-          icon={<PencilIcon size={28} color={colors.red} />}
-          title="Escrever ou colar"
-          description="Tópicos, texto ou matéria do quadro"
-          onPress={gerar}
-        />
-      </View>
-
-      <View style={styles.rugiRow}>
-        <View style={styles.bubble}>
-          <Text style={styles.bubbleText}>Manda que eu resolvo.</Text>
+        <View style={styles.options}>
+          <OptionCard
+            highlighted
+            icon={<CameraIcon size={28} color={colors.white} />}
+            title="Tirar foto"
+            description="Do caderno, livro ou lousa"
+            badge="Mais rápido"
+            onPress={capturar(tirarFoto)}
+          />
+          <OptionCard icon={<FileIcon size={28} color={colors.red} />} title="Enviar PDF" description="Slides, apostila ou resumo" onPress={capturar(escolherPdf)} />
+          <OptionCard
+            icon={<PencilIcon size={28} color={colors.red} />}
+            title="Escrever ou colar"
+            description="Tópicos, texto ou matéria do quadro"
+            onPress={() => router.push({ pathname: '/prova/conteudo', params: { texto: '1' } })}
+          />
         </View>
-        <Rugi mood="forca" width={108} accessibilityLabel="Rugi confiante" />
-      </View>
+
+        <View style={styles.rugiRow}>
+          <View style={styles.bubble}>
+            <Text style={styles.bubbleText}>Manda que eu resolvo.</Text>
+          </View>
+          <Rugi mood="forca" width={108} accessibilityLabel="Rugi confiante" />
+        </View>
+      </ScrollView>
+
+      {erro && <InfoSheet mood="pensativo" title="Opa!" text={erro} button="Beleza" onClose={() => setErro(null)} />}
     </View>
   );
 }
@@ -200,7 +211,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   badgeText: { fontFamily: fonts.nunito900, fontSize: 12, color: colors.white },
-  rugiRow: { flex: 1, flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'center', gap: 4 },
+  body: { flex: 1, marginHorizontal: -space.gutter },
+  bodyContent: { flexGrow: 1, paddingHorizontal: space.gutter },
+  // flexGrow (não flex: 1): ocupa a sobra no design e não encolhe por cima dos cards quando falta altura.
+  rugiRow: { flexGrow: 1, flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'center', gap: 4 },
   bubble: {
     marginBottom: 64,
     backgroundColor: colors.offWhite,

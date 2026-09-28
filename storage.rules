@@ -1,0 +1,12 @@
+rules_version = '2';
+
+// Ilustrações geradas no modo qualidade: só as Cloud Functions gravam; o dono lê.
+// (O app abre as imagens pela URL de download, que já vem com token.)
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /usuarios/{uid}/{todo=**} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow write: if false;
+    }
+  }
+}

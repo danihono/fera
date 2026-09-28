@@ -13,7 +13,11 @@ const LETTERS = ['A', 'B', 'C', 'D'];
 
 type Props = { q: Q; value: number | null; onChange: (i: number) => void; result: Result };
 
+/** Alternativa que não cabe no quadrado de 96px com fonte 28 vira lista. */
+const LIMITE_GRADE = 9;
+
 export function QuizQuestion({ q, value, onChange, result }: Props) {
+  const lista = q.alternativas.some((a) => a.length > LIMITE_GRADE);
   return (
     <View>
       <View style={styles.askRow}>
@@ -24,26 +28,40 @@ export function QuizQuestion({ q, value, onChange, result }: Props) {
         </View>
       </View>
 
-      <View style={styles.formula}>
-        <Text style={styles.formulaText}>{q.formula}</Text>
-      </View>
+      {/* Sem fórmula (questões de texto), o quadro some. */}
+      {!!q.formula && (
+        <View style={styles.formula}>
+          <Text style={[styles.formulaText, q.formula.length > 16 && styles.formulaLonga]} numberOfLines={2} adjustsFontSizeToFit>
+            {q.formula}
+          </Text>
+        </View>
+      )}
 
-      <View style={styles.grid} accessibilityRole="radiogroup" accessibilityLabel="Alternativas">
-        {[0, 2].map((row) => (
-          <View key={row} style={styles.gridRow}>
-            {[row, row + 1].map((i) => (
-              <Option
-                key={i}
-                letter={LETTERS[i]}
-                text={q.alternativas[i]}
-                state={optionState(i, value, q.resposta, result)}
-                onPress={() => onChange(i)}
-                disabled={!!result}
-              />
-            ))}
-          </View>
-        ))}
-      </View>
+      {/* Respostas curtas (contas) ficam na grade 2 × 2 do design; frases viram lista. */}
+      {lista ? (
+        <View style={styles.grid} accessibilityRole="radiogroup" accessibilityLabel="Alternativas">
+          {q.alternativas.map((alt, i) => (
+            <Option key={i} wide letter={LETTERS[i]} text={alt} state={optionState(i, value, q.resposta, result)} onPress={() => onChange(i)} disabled={!!result} />
+          ))}
+        </View>
+      ) : (
+        <View style={styles.grid} accessibilityRole="radiogroup" accessibilityLabel="Alternativas">
+          {[0, 2].map((row) => (
+            <View key={row} style={styles.gridRow}>
+              {[row, row + 1].map((i) => (
+                <Option
+                  key={i}
+                  letter={LETTERS[i]}
+                  text={q.alternativas[i]}
+                  state={optionState(i, value, q.resposta, result)}
+                  onPress={() => onChange(i)}
+                  disabled={!!result}
+                />
+              ))}
+            </View>
+          ))}
+        </View>
+      )}
     </View>
   );
 }
@@ -66,7 +84,7 @@ const look: Record<OptionState, { border: string; bg: string; shadow?: string; t
   dim: { border: colors.border, bg: colors.white, text: colors.text, opacity: 0.45 },
 };
 
-function Option({ letter, text, state, onPress, disabled }: { letter: string; text: string; state: OptionState; onPress: () => void; disabled: boolean }) {
+function Option({ letter, text, state, onPress, disabled, wide }: { letter: string; text: string; state: OptionState; onPress: () => void; disabled: boolean; wide?: boolean }) {
   const l = look[state];
 
   // shake .5s ease-in-out, só quando a resposta escolhida está errada.
@@ -79,7 +97,7 @@ function Option({ letter, text, state, onPress, disabled }: { letter: string; te
   }));
 
   return (
-    <Animated.View style={[styles.optionWrap, shakeStyle]}>
+    <Animated.View style={[wide ? undefined : styles.optionWrap, shakeStyle]}>
       <Pressable
         accessibilityRole="radio"
         accessibilityState={{ checked: state === 'selected' || state === 'correct' || state === 'wrong', disabled }}
@@ -88,6 +106,7 @@ function Option({ letter, text, state, onPress, disabled }: { letter: string; te
         onPress={onPress}
         style={({ pressed }) => [
           styles.option,
+          wide && styles.optionWide,
           {
             borderColor: l.border,
             borderStyle: l.dashed ? 'dashed' : 'solid',
@@ -98,44 +117,45 @@ function Option({ letter, text, state, onPress, disabled }: { letter: string; te
           },
         ]}
       >
-        <Badge letter={letter} state={state} />
-        <Text style={[styles.optionText, { color: l.text }]}>{text}</Text>
+        <Badge letter={letter} state={state} wide={wide} />
+        <Text style={[styles.optionText, wide && styles.optionTextWide, { color: l.text }]}>{text}</Text>
       </Pressable>
     </Animated.View>
   );
 }
 
-function Badge({ letter, state }: { letter: string; state: OptionState }) {
+function Badge({ letter, state, wide }: { letter: string; state: OptionState; wide?: boolean }) {
+  const pos = wide ? styles.badgeWide : undefined;
   switch (state) {
     case 'dim':
       return null;
     case 'selected':
       return (
-        <View style={[styles.badge, { backgroundColor: colors.red }]}>
+        <View style={[styles.badge, pos, { backgroundColor: colors.red }]}>
           <Text style={[styles.badgeText, { color: colors.white }]}>{letter}</Text>
         </View>
       );
     case 'correct':
       return (
-        <View style={[styles.badge, { backgroundColor: colors.success }]}>
+        <View style={[styles.badge, pos, { backgroundColor: colors.success }]}>
           <CheckIcon size={16} strokeWidth={3.8} color={colors.white} />
         </View>
       );
     case 'wrong':
       return (
-        <View style={[styles.badge, { backgroundColor: colors.error }]}>
+        <View style={[styles.badge, pos, { backgroundColor: colors.error }]}>
           <XMarkIcon size={14} strokeWidth={4} color={colors.white} />
         </View>
       );
     case 'reveal':
       return (
-        <View style={[styles.badge, { backgroundColor: colors.successBg }]}>
+        <View style={[styles.badge, pos, { backgroundColor: colors.successBg }]}>
           <CheckIcon size={16} strokeWidth={3.8} color={colors.successText} />
         </View>
       );
     default:
       return (
-        <View style={[styles.badge, styles.badgeIdle]}>
+        <View style={[styles.badge, pos, styles.badgeIdle]}>
           <Text style={styles.badgeText}>{letter}</Text>
         </View>
       );
@@ -160,6 +180,7 @@ const styles = StyleSheet.create({
   question: { fontFamily: fonts.nunito800, fontSize: 20, lineHeight: 25, color: colors.text },
   formula: { marginTop: 16, height: 84, borderRadius: radius.card, backgroundColor: colors.offWhite, alignItems: 'center', justifyContent: 'center' },
   formulaText: { fontFamily: fonts.fredoka600, fontSize: 36, letterSpacing: 0.5, color: colors.text },
+  formulaLonga: { fontSize: 24, textAlign: 'center', paddingHorizontal: 16 },
   grid: { marginTop: 20, gap: 12 },
   gridRow: { flexDirection: 'row', gap: 12 },
   optionWrap: { flex: 1 },
@@ -171,6 +192,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   optionText: { fontFamily: fonts.fredoka600, fontSize: 28 },
+  // Lista (alternativas em frase): altura pelo texto, letra à esquerda.
+  optionWide: { height: 'auto', minHeight: 64, paddingVertical: 12, paddingHorizontal: 14, flexDirection: 'row', justifyContent: 'flex-start', gap: 12 },
+  optionTextWide: { flexShrink: 1, fontFamily: fonts.nunito800, fontSize: 17, lineHeight: 22 },
+  badgeWide: { position: 'relative', top: 0, left: 0 },
   badge: {
     position: 'absolute',
     top: 10,

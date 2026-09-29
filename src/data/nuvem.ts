@@ -11,6 +11,7 @@ import { collection, deleteDoc, doc, getDoc, getDocs, onSnapshot, serverTimestam
 import { httpsCallable } from 'firebase/functions';
 import type { Progresso, ProvaGerada } from '@/ia/tipos';
 import { entrar, firebase, usuarioAtual } from '@/lib/firebase';
+import { ouvirAssinatura } from './assinatura';
 import { app, lerEstado, nomeDe, type AppState, type TurmaRef } from './store';
 
 const semDatas = <T>(v: T): T => JSON.parse(JSON.stringify(v));
@@ -64,8 +65,10 @@ export async function iniciarNuvem(opts: { trocouDeConta?: boolean } = {}): Prom
     if (timer) clearTimeout(timer);
     timer = setTimeout(enviar, 1500);
   });
+  const pararAssinatura = ouvirAssinatura(user.uid);
   pararSync = () => {
     parar();
+    pararAssinatura();
     if (timer) clearTimeout(timer);
   };
   return origem;

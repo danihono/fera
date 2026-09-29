@@ -115,19 +115,55 @@ test('function: apagarMeusDados leva o usuário inteiro, inclusive as gerações
   });
 });
 
-test('function: só Fera+ gera no modo qualidade', async () => {
+test('function: só Fera+ de verdade gera no modo qualidade (premium do app não vale)', async () => {
   const { uid, token } = await loginAnonimo();
-  await env.withSecurityRulesDisabled((ctx) => setDoc(doc(ctx.firestore(), `usuarios/${uid}`), { estado: { premium: false } }));
+  // O app consegue escrever estado.premium, mas o servidor não confia nele.
+  await setDoc(doc(env.authenticatedContext(uid).firestore(), `usuarios/${uid}`), { estado: { premium: true } });
   const r = await chamar('gerarProva', token, { provaId: 'ptesteab', pedido });
   assert.equal(r.corpo.error?.status, 'PERMISSION_DENIED');
   const sem = await chamar('gerarProva', '', { provaId: 'ptesteab', pedido });
   assert.equal(sem.corpo.error?.status, 'UNAUTHENTICATED');
 });
 
+test('regras: assinatura e uso do projeto só o servidor escreve', async () => {
+  const eu = env.authenticatedContext('bia').firestore();
+  await assertFails(setDoc(doc(eu, 'assinaturas/bia'), { ativo: true }));
+  await assertSucceeds(getDoc(doc(eu, 'assinaturas/bia')));
+  await assertFails(getDoc(doc(eu, 'assinaturas/ana')));
+  await assertFails(setDoc(doc(eu, 'sistema/uso-2026-01-01'), { geracoes: 0 }));
+});
+
+test('function: compra de teste ativa e cancela o Fera+; o teto do projeto segura as gerações', async () => {
+  const { uid, token } = await loginAnonimo();
+  const r = await chamar('assinarTeste', token, { plano: 'mensal' });
+  assert.equal(r.status, 200, JSON.stringify(r.corpo));
+  const eu = env.authenticatedContext(uid).firestore();
+  const a = (await getDoc(doc(eu, `assinaturas/${uid}`))).data()!;
+  assert.equal(a.ativo, true);
+  assert.equal(a.plano, 'mensal');
+
+  // Teto do dia atingido: nem Fera+ gera.
+  const dia = new Date().toISOString().slice(0, 10);
+  await env.withSecurityRulesDisabled((ctx) => setDoc(doc(ctx.firestore(), `sistema/uso-${dia}`), { geracoes: 1000 }));
+  const cheio = await chamar('gerarProva', token, { provaId: 'pteto001', pedido });
+  assert.equal(cheio.corpo.error?.status, 'RESOURCE_EXHAUSTED');
+  assert.equal(cheio.corpo.error?.details?.codigo, 'limite');
+  await env.withSecurityRulesDisabled((ctx) => setDoc(doc(ctx.firestore(), `sistema/uso-${dia}`), { geracoes: 0 }));
+
+  const c = await chamar('cancelarAssinaturaTeste', token, {});
+  assert.equal(c.status, 200, JSON.stringify(c.corpo));
+  assert.equal((await getDoc(doc(eu, `assinaturas/${uid}`))).data()!.ativo, false);
+  const depois = await chamar('gerarProva', token, { provaId: 'pteto002', pedido });
+  assert.equal(depois.corpo.error?.status, 'PERMISSION_DENIED');
+});
+
 test('function: gera a prova, grava o progresso e o conteúdo; formato extra junta no mesmo conteúdo', async () => {
   const { uid, token } = await loginAnonimo();
   await env.withSecurityRulesDisabled((ctx) =>
-    setDoc(doc(ctx.firestore(), `usuarios/${uid}`), { estado: { premium: true, serie: '2º ano (EM)', provas: [{ id: 'pquali01', data: new Date(Date.now() + 3 * 86400000).toISOString(), minutosDia: 10 }] } }),
+    Promise.all([
+      setDoc(doc(ctx.firestore(), `usuarios/${uid}`), { estado: { serie: '2º ano (EM)', provas: [{ id: 'pquali01', data: new Date(Date.now() + 3 * 86400000).toISOString(), minutosDia: 10 }] } }),
+      setDoc(doc(ctx.firestore(), `assinaturas/${uid}`), { ativo: true, plano: 'anual', origem: 'teste' }),
+    ]),
   );
   const invalido = await chamar('gerarProva', token, { provaId: '../x', pedido });
   assert.equal(invalido.corpo.error?.status, 'INVALID_ARGUMENT');

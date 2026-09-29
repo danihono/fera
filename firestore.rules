@@ -27,6 +27,17 @@ service cloud.firestore {
       }
     }
 
+    // Fera+: só o servidor escreve (compra de teste ou webhook da loja). O app só lê a própria.
+    match /assinaturas/{uid} {
+      allow read: if eu(uid);
+      allow write: if false;
+    }
+
+    // Uso do projeto (teto diário de gerações): só o servidor.
+    match /sistema/{doc} {
+      allow read, write: if false;
+    }
+
     match /turmas/{codigo} {
       allow read: if logado();
       allow create: if logado()

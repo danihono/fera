@@ -24,12 +24,19 @@ const OPENAI_API_KEY = defineSecret('OPENAI_API_KEY');
 const LIMITE_DIA = Number(process.env.FERA_LIMITE_DIA || 10);
 const FORMATOS: FormatoId[] = ['resumo', 'explicacao', 'mapa', 'quiz', 'slides', 'grafico', 'fluxo', 'imagens', 'teste', 'simulado'];
 const MAX_ANEXOS_BYTES = 24 * 1024 * 1024;
+/** Gerações por dia no projeto inteiro (teto de gasto). */
+const LIMITE_GLOBAL_DIA = Number(process.env.FERA_LIMITE_GLOBAL_DIA || 200);
+/** Compra de Fera+ de mentira (prévia e emuladores). Em produção fica desligada: quem ativa é a loja. */
+const COMPRA_TESTE = process.env.FERA_COMPRA_TESTE === '1';
+/** Recusa chamadas sem App Check. Só ligue depois de configurar o App Check em todas as plataformas do app. */
+const enforceAppCheck = process.env.FERA_EXIGIR_APPCHECK === '1';
 
 const opcoes = {
   secrets: [ANTHROPIC_API_KEY, GEMINI_API_KEY, OPENAI_API_KEY],
   timeoutSeconds: 540,
   memory: '1GiB' as const,
   cors: true,
+  enforceAppCheck,
 };
 
 /** Chave vazia ou "-" (secret criado só pra não travar o deploy) conta como ausente. */
@@ -77,16 +84,37 @@ function lerPedido(v: unknown): PedidoGeracao {
   };
 }
 
-/** Só quem tem Fera+ usa o modo qualidade, com limite por dia. */
+/**
+ * A assinatura mora em assinaturas/{uid}, que só o servidor escreve (compra de teste aqui embaixo ou, nas lojas,
+ * o webhook do RevenueCat). O estado.premium que o app guarda em usuarios/{uid} não vale: o app escreve ele.
+ */
+async function temFeraMais(uid: string) {
+  const a = await db.doc(`assinaturas/${uid}`).get();
+  if (a.get('ativo') !== true) return false;
+  const expira = a.get('expiraEm') as Timestamp | undefined;
+  return !expira || expira.toMillis() > Date.now();
+}
+
+/** Teto de gerações por dia no projeto inteiro (protege a conta das IAs de abuso, mesmo com muitos usuários). */
+async function reservarCotaDoDia() {
+  const ref = db.doc(`sistema/uso-${new Date().toISOString().slice(0, 10)}`);
+  await db.runTransaction(async (t) => {
+    const usadas = Number((await t.get(ref)).get('geracoes') ?? 0);
+    if (usadas >= LIMITE_GLOBAL_DIA)
+      throw new HttpsError('resource-exhausted', 'Limite do projeto.', { codigo: 'limite', mensagem: 'O Fera tá lotado hoje. Tenta de novo amanhã cedinho!' });
+    t.set(ref, { geracoes: usadas + 1, atualizadoEm: FieldValue.serverTimestamp() }, { merge: true });
+  });
+}
+
+/** Só quem tem Fera+ usa o modo qualidade, com limite por pessoa e por projeto. */
 async function exigirFeraMais(uid: string) {
-  const u = await db.doc(`usuarios/${uid}`).get();
-  // A compra ainda é simulada no app; com pagamento de verdade, o premium passa a vir do servidor (custom claim).
-  if (u.get('estado.premium') !== true) throw new HttpsError('permission-denied', 'O modo qualidade é do Fera+.', { codigo: 'premium', mensagem: 'O modo qualidade é do Fera+.' });
+  if (!(await temFeraMais(uid))) throw new HttpsError('permission-denied', 'O modo qualidade é do Fera+.', { codigo: 'premium', mensagem: 'O modo qualidade é do Fera+.' });
   const inicioDoDia = new Date();
   inicioDoDia.setHours(0, 0, 0, 0);
   const hoje = await db.collection(`usuarios/${uid}/geracoes`).where('criadaEm', '>=', Timestamp.fromDate(inicioDoDia)).count().get();
   if (hoje.data().count >= LIMITE_DIA)
     throw new HttpsError('resource-exhausted', 'Limite do dia.', { codigo: 'limite', mensagem: `Você já gerou ${LIMITE_DIA} provas hoje. Amanhã tem mais!` });
+  await reservarCotaDoDia();
 }
 
 /** Grava o progresso no Firestore no máximo a cada 800 ms (a última atualização sempre vai). */
@@ -209,7 +237,7 @@ export const gerarFormato = onCall(opcoes, async (req) => {
  * Excluir conta: apaga no servidor tudo da pessoa, inclusive o que o app não pode apagar sozinho
  * (progresso das gerações e imagens geradas no Storage). O app chama antes de apagar o usuário.
  */
-export const apagarMeusDados = onCall({ cors: true }, async (req) => {
+export const apagarMeusDados = onCall({ cors: true, enforceAppCheck }, async (req) => {
   const uid = req.auth?.uid;
   if (!uid) throw new HttpsError('unauthenticated', 'Entra pra continuar.');
   await getStorage()
@@ -217,5 +245,39 @@ export const apagarMeusDados = onCall({ cors: true }, async (req) => {
     .deleteFiles({ prefix: `usuarios/${uid}/` })
     .catch(() => {});
   await db.recursiveDelete(db.doc(`usuarios/${uid}`));
+  await db.doc(`assinaturas/${uid}`).delete();
+  return { ok: true };
+});
+
+// ——— Fera+ (compra de teste) ———
+
+const fechada = () =>
+  new HttpsError('failed-precondition', 'Compra fechada.', { codigo: 'fechado', mensagem: 'A assinatura ainda não está à venda. Logo logo!' });
+
+/** Compra de mentira pra testar o Fera+ de ponta a ponta (FERA_COMPRA_TESTE=1). Nas lojas, é o webhook que ativa. */
+export const assinarTeste = onCall({ cors: true, enforceAppCheck }, async (req) => {
+  const uid = exigirUsuario(req);
+  if (!COMPRA_TESTE) throw fechada();
+  const plano = (req.data as { plano?: unknown })?.plano === 'mensal' ? 'mensal' : 'anual';
+  const dias = plano === 'anual' ? 365 : 31;
+  await db.doc(`assinaturas/${uid}`).set({
+    ativo: true,
+    plano,
+    origem: 'teste',
+    desde: FieldValue.serverTimestamp(),
+    expiraEm: Timestamp.fromMillis(Date.now() + dias * 86400000),
+  });
+  return { ok: true };
+});
+
+/** Cancela a assinatura de teste. Assinatura de loja se cancela na loja (o webhook avisa o servidor). */
+export const cancelarAssinaturaTeste = onCall({ cors: true, enforceAppCheck }, async (req) => {
+  const uid = exigirUsuario(req);
+  const ref = db.doc(`assinaturas/${uid}`);
+  const a = await ref.get();
+  if (a.exists && a.get('origem') !== 'teste')
+    throw new HttpsError('failed-precondition', 'Assinatura da loja.', { codigo: 'loja', mensagem: 'Sua assinatura é da loja: cancele nos ajustes do celular.' });
+  if (!COMPRA_TESTE) throw fechada();
+  await ref.set({ ativo: false, canceladaEm: FieldValue.serverTimestamp() }, { merge: true });
   return { ok: true };
 });

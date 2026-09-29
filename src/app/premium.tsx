@@ -11,7 +11,8 @@ import { Rugi } from '@/components/Rugi';
 import { InfoSheet } from '@/components/InfoSheet';
 import { TapScale } from '@/components/TapScale';
 import { Rolavel } from '@/components/Rolavel';
-import { app, useApp } from '@/data/store';
+import { assinar, cancelarAssinatura, restaurarCompra } from '@/data/assinatura';
+import { useApp } from '@/data/store';
 import { pingPong, useLoop } from '@/lib/anim';
 import { colors, fonts, radius, sizes, solidShadow, space } from '@/theme';
 
@@ -33,6 +34,24 @@ export default function Premium() {
   const [plan, setPlan] = useState<(typeof PLANS)[number]['id']>('anual');
   const { premium } = useApp();
   const [sheet, setSheet] = useState<null | 'comprou' | 'restaurar' | 'gerenciar' | 'cancelar'>(null);
+  const [ocupado, setOcupado] = useState(false);
+  const [erro, setErro] = useState<string | null>(null);
+
+  // Com as Functions no ar, o servidor ativa (e o app só acompanha); sem elas, é simulado no aparelho.
+  const comprar = () => {
+    setOcupado(true);
+    assinar(plan)
+      .then(() => setSheet('comprou'))
+      .catch((e: Error) => setErro(e.message))
+      .finally(() => setOcupado(false));
+  };
+  const restaurar = () => {
+    setOcupado(true);
+    restaurarCompra()
+      .then(() => setSheet('restaurar'))
+      .catch((e: Error) => setErro(e.message))
+      .finally(() => setOcupado(false));
+  };
 
   // crown 2.2s · twinkle 1.8s (atrasos 0 / .6s / 1.2s)
   const crown = useLoop(2200);
@@ -55,7 +74,7 @@ export default function Premium() {
           <Pressable accessibilityRole="button" accessibilityLabel="Fechar" onPress={() => router.back()} style={styles.close}>
             <CloseIcon size={24} strokeWidth={3} color={colors.iconMuted} />
           </Pressable>
-          <Pressable accessibilityRole="button" onPress={() => setSheet('restaurar')} style={styles.restore}>
+          <Pressable accessibilityRole="button" onPress={restaurar} style={styles.restore}>
             <Text style={styles.restoreText}>Restaurar compra</Text>
           </Pressable>
         </View>
@@ -121,7 +140,12 @@ export default function Premium() {
           })}
         </View>
       </Rolavel>
-      <FeraButton label={premium ? 'Gerenciar assinatura' : 'Quero ser Fera+'} variant={premium ? 'secondary' : 'primary'} onPress={() => setSheet(premium ? 'gerenciar' : 'comprou')} />
+      <FeraButton
+        label={ocupado ? 'Um instante…' : premium ? 'Gerenciar assinatura' : 'Quero ser Fera+'}
+        variant={premium ? 'secondary' : 'primary'}
+        disabled={ocupado}
+        onPress={premium ? () => setSheet('gerenciar') : comprar}
+      />
 
       {/* Prévia: sem pagamento de verdade ainda. */}
       {sheet === 'comprou' && (
@@ -130,10 +154,7 @@ export default function Premium() {
           title="Agora você é Fera+!"
           text={`Plano ${plan === 'anual' ? 'anual' : 'mensal'} ativado. Isto é uma prévia: nenhuma cobrança foi feita.`}
           button="Bora!"
-          onConfirm={() => {
-            app.setPremium(true);
-            router.back();
-          }}
+          onConfirm={() => router.back()}
           onClose={() => setSheet(null)}
         />
       )}
@@ -157,8 +178,11 @@ export default function Premium() {
           secondary={{
             label: 'Cancelar mesmo',
             onPress: () => {
-              app.setPremium(false);
-              router.back();
+              setOcupado(true);
+              cancelarAssinatura()
+                .then(() => router.back())
+                .catch((e: Error) => setErro(e.message))
+                .finally(() => setOcupado(false));
             },
           }}
           onClose={() => setSheet((s) => (s === 'cancelar' ? null : s))}
@@ -173,6 +197,7 @@ export default function Premium() {
           onClose={() => setSheet(null)}
         />
       )}
+      {erro && <InfoSheet mood="pensativo" title="Não deu" text={erro} button="Beleza" onClose={() => setErro(null)} />}
     </View>
   );
 }

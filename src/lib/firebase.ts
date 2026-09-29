@@ -4,6 +4,7 @@ import { getApp, getApps, initializeApp, type FirebaseApp } from 'firebase/app';
 import { connectAuthEmulator, onAuthStateChanged, signInAnonymously, type Auth, type User } from 'firebase/auth';
 import { connectFirestoreEmulator, initializeFirestore, type Firestore } from 'firebase/firestore';
 import { connectFunctionsEmulator, getFunctions, type Functions } from 'firebase/functions';
+import { iniciarAppCheck } from './appCheck';
 import { iniciarAuth } from './firebaseAuth';
 
 // O Expo só embute no app as variáveis lidas assim, uma por uma (process.env.EXPO_PUBLIC_…).
@@ -34,6 +35,7 @@ export function firebase(): Servicos | null {
   if (servicos) return servicos;
   const jaExiste = getApps().length > 0;
   const app = jaExiste ? getApp() : initializeApp(config);
+  if (!jaExiste) iniciarAppCheck(app);
   const auth = iniciarAuth(app);
   // E-mails de verificação e de nova senha em português.
   auth.languageCode = 'pt-BR';

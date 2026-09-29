@@ -96,7 +96,21 @@ Quem tem Fera+ passa a gerar pelo servidor (`gerarProva` e `gerarFormato`, em `f
 
 Com as Functions no ar, **Excluir conta** também chama `apagarMeusDados`, que apaga o que o app não consegue apagar sozinho (progresso das gerações e as ilustrações no Storage). Sem as Functions, o app apaga o resto normalmente.
 
-> A compra do Fera+ ainda é simulada: o app marca `premium` no próprio perfil. Antes de cobrar de verdade, o premium tem que vir do servidor (RevenueCat ou Google Play/App Store → Cloud Function → custom claim) e a Function passa a checar o claim.
+### Quem é Fera+ (e por que ninguém fura)
+Com as Functions no ar, o Fera+ mora em `assinaturas/{uid}`, que **só o servidor escreve** (as regras bloqueiam o app). A Function de geração checa esse documento — o `premium` que o app guarda no próprio perfil não vale nada pro servidor. Três travas de custo, todas em `functions/.env`:
+- `FERA_LIMITE_DIA=10` — provas por pessoa por dia.
+- `FERA_LIMITE_GLOBAL_DIA=200` — teto do projeto inteiro por dia (se alguém criar mil contas, para aqui). Ajuste conforme o orçamento.
+- `FERA_COMPRA_TESTE=0` — com `1`, o botão "Quero ser Fera+" ativa uma assinatura de teste de verdade no servidor (bom pra prévia com amigos). Com `0`, só a loja ativa (Prioridade 4: RevenueCat).
+
+Depois de mudar o `.env`: `firebase deploy --only functions,firestore`.
+
+### App Check (antes de abrir pro público)
+Garante que os pedidos vêm do seu app, e não de um script gastando a cota do Gemini ou das Functions.
+1. Google Cloud → **reCAPTCHA Enterprise** → criar chave de site (tipo "site", domínios `fera-bfdbb.web.app` e `danihono.github.io`).
+2. Firebase → **App Check → Apps → app Web → reCAPTCHA Enterprise** → cole a chave.
+3. No `.env`: `EXPO_PUBLIC_RECAPTCHA_SITE_KEY=<chave>` e publique o site (`npm run build:hosting && firebase deploy --only hosting`).
+4. Olhe as métricas do App Check por uns dias; quando quase tudo vier "verificado", clique **Aplicar** em Firestore e em **Firebase AI Logic**, e ponha `FERA_EXIGIR_APPCHECK=1` nas Functions.
+5. No celular (build das lojas), o SDK JS não atesta: use `@react-native-firebase/app-check` com Play Integrity / App Attest antes de exigir o App Check — senão o app nativo para de gerar.
 
 ---
 

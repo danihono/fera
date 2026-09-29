@@ -4,11 +4,11 @@ import { router } from 'expo-router';
 import { useRef, useState } from 'react';
 import { StyleSheet, Text, type TextInput } from 'react-native';
 import { Campo } from '@/components/Campo';
-import { Apresentacao, Aviso, estilosConta, ForcaSenha, LinkTexto, Marcar, TelaConta } from '@/components/conta/ui';
+import { Apresentacao, Aviso, Chips, estilosConta, ForcaSenha, LinkTexto, Marcar, TelaConta } from '@/components/conta/ui';
 import { FeraButton } from '@/components/FeraButton';
 import { InfoSheet } from '@/components/InfoSheet';
 import { criarConta, ErroConta, forcaDaSenha, traduzir } from '@/data/conta';
-import { useApp } from '@/data/store';
+import { app, useApp, type FaixaEtaria } from '@/data/store';
 import { colors, fonts } from '@/theme';
 
 export default function CriarConta() {
@@ -18,6 +18,8 @@ export default function CriarConta() {
   const [senha, setSenha] = useState('');
   const [confirmar, setConfirmar] = useState('');
   const [aceite, setAceite] = useState(false);
+  const [faixa, setFaixa] = useState<FaixaEtaria | null>(null);
+  const crianca = faixa === 'crianca';
   const [erro, setErro] = useState<ErroConta | null>(null);
   const [erroConfirmar, setErroConfirmar] = useState<string | null>(null);
   const [enviando, setEnviando] = useState(false);
@@ -38,6 +40,10 @@ export default function CriarConta() {
       setErroConfirmar('As duas senhas não estão iguais.');
       return;
     }
+    if (!faixa) {
+      setErro(new ErroConta('Conta pra quem? Escolhe a idade lá em cima.'));
+      return;
+    }
     if (!aceite) {
       setErro(new ErroConta('Pra criar a conta, marca que leu e aceita os Termos e a Política de privacidade.'));
       return;
@@ -45,6 +51,7 @@ export default function CriarConta() {
     setEnviando(true);
     try {
       await criarConta(nome, email, senha);
+      app.setFaixaEtaria(faixa);
       setPronto(true);
     } catch (e) {
       setErro(traduzir(e));
@@ -65,8 +72,23 @@ export default function CriarConta() {
       />
       {erro && !erro.campo && <Aviso tipo="erro">{erro.message}</Aviso>}
 
+      <Chips
+        rotulo="Quantos anos você tem?"
+        valor={faixa}
+        onChange={(f) => {
+          setFaixa(f);
+          if (erro) setErro(null);
+        }}
+        opcoes={[
+          { id: 'crianca', label: 'Até 11' },
+          { id: 'adolescente', label: '12 a 17' },
+          { id: 'adulto', label: '18 ou mais' },
+        ]}
+      />
+      {crianca && <Aviso>Com menos de 12 anos, quem cria a conta é o pai, a mãe ou o responsável, com o e-mail e a senha dele.</Aviso>}
+
       <Campo
-        rotulo="Nome"
+        rotulo={crianca ? 'Nome da criança' : 'Nome'}
         value={nome}
         onChangeText={(t) => {
           setNome(t);
@@ -83,7 +105,7 @@ export default function CriarConta() {
       />
       <Campo
         ref={emailRef}
-        rotulo="E-mail"
+        rotulo={crianca ? 'E-mail do responsável' : 'E-mail'}
         value={email}
         onChangeText={(t) => {
           setEmail(t);
@@ -137,7 +159,7 @@ export default function CriarConta() {
       />
 
       <Marcar marcado={aceite} onChange={setAceite}>
-        Li e aceito os{' '}
+        {crianca ? 'Sou o responsável, li e aceito os ' : 'Li e aceito os '}
         <Text style={styles.link} accessibilityRole="link" onPress={() => router.push('/legal/termos')}>
           Termos de uso
         </Text>{' '}
@@ -145,7 +167,7 @@ export default function CriarConta() {
         <Text style={styles.link} accessibilityRole="link" onPress={() => router.push('/legal/privacidade')}>
           Política de privacidade
         </Text>
-        . Se tenho menos de 18 anos, meu responsável também concorda.
+        {crianca ? ', e autorizo a criança a usar o Fera.' : '. Se tenho menos de 18 anos, meu responsável também concorda.'}
       </Marcar>
 
       <FeraButton label={enviando ? 'Criando…' : 'Criar conta'} disabled={!podeEnviar} onPress={criar} style={estilosConta.botoes} />

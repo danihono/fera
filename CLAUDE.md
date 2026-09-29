@@ -52,6 +52,7 @@ Montadas só com o design system para dar uma ideia do app completo — substitu
 | Minha conta | `src/app/conta/index.tsx` | avatar do Perfil, Configurações |
 | Entrar · Criar conta · Esqueci a senha | `src/app/conta/entrar.tsx`, `criar.tsx`, `esqueci.tsx` | "Já tenho conta" (02a), Minha conta, cartão do Perfil |
 | Trocar senha · Excluir conta | `src/app/conta/senha.tsx`, `excluir.tsx` | Minha conta |
+| Exclusão de conta (pública) | `src/app/excluir-conta.tsx` | link das lojas (Google Play) |
 | Ajuda · Termos/Privacidade · 404 | `src/app/ajuda.tsx`, `legal/[doc].tsx`, `+not-found.tsx` | Configurações, Criar conta |
 | Todas as conquistas | `src/app/conquistas.tsx` | "Ver todas" do Perfil |
 | Trocar/entrar em turma | sheets em `src/app/(tabs)/turma.tsx` | seletor de turma |
@@ -79,7 +80,7 @@ Formatos (grátis e Fera+) ficam em `src/data/formatos.tsx`. Grátis escolhe at�
 - Toda resposta da IA passa por `src/ia/normalizar.ts` (limites de tamanho da tela, gabarito coerente) e as questões por revisão independente. Mudou um esquema? Rode `npm run test:ia`.
 - Chaves de IA só no Secret Manager das Functions. No app só vão as `EXPO_PUBLIC_*` (config pública do Firebase). Leia sempre `process.env.EXPO_PUBLIC_X` direto (o Expo só embute assim) e use `npx expo start --clear` depois de mudar o `.env.local`.
 - Firestore: `usuarios/{uid}` (estado), `conteudos/{prova}`, `geracoes/{prova}` (só servidor escreve), `turmas/{codigo}/membros/{uid}`. Mudou as regras? Rode `npm run test:emuladores`.
-- Passo a passo em `docs/COMO-LIGAR.md`; escolhas de IA e custos em `docs/IA.md`.
+- Passo a passo em `docs/COMO-LIGAR.md`; escolhas de IA e custos em `docs/IA.md`; lojas (ficha, prints, RevenueCat) em `docs/LOJAS.md`.
 
 Também são prévia: preços do Fera+ (compra e cancelamento simulados), atalhos "Prévias" nas Configurações (Streak e Véspera), troféu do Dia D → Véspera, textos das sheets (`InfoSheet`), Termos e Política de privacidade (`src/data/legal.ts`, revisar com advogado).
 O estado do app (onboarding, provas, progresso da trilha, XP, sequência, Fera+, turma, nome, foto, série) fica em `src/data/store.ts`, salvo no aparelho com AsyncStorage (localStorage na web) e espelhado no Firestore quando o Firebase está ligado (`src/data/nuvem.ts`). Sem conta, "Sair" apaga tudo (avisando e oferecendo criar conta); com conta, só limpa o aparelho.

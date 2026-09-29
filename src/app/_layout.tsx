@@ -88,6 +88,7 @@ export default function RootLayout() {
         <Stack.Screen name="prova/[id]" />
         <Stack.Screen name="ajuda" />
         <Stack.Screen name="legal/[doc]" />
+        <Stack.Screen name="excluir-conta" />
         <Stack.Screen name="+not-found" />
       </Stack>
       <SemInternet />

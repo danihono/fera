@@ -115,6 +115,16 @@ test('function: apagarMeusDados leva o usuário inteiro, inclusive as gerações
   });
 });
 
+test('function: webhook do RevenueCat recusa quem não tem o segredo', async () => {
+  const r = await fetch(`http://${HOST}:5001/${PROJETO}/southamerica-east1/revenuecatWebhook`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: 'chute' },
+    body: JSON.stringify({ event: { type: 'INITIAL_PURCHASE', app_user_id: 'Xy12AbC34dEf56GhI78j' } }),
+  });
+  assert.equal(r.status, 401);
+  await env.withSecurityRulesDisabled(async (ctx) => assert.equal((await getDoc(doc(ctx.firestore(), 'assinaturas/Xy12AbC34dEf56GhI78j'))).exists(), false));
+});
+
 test('function: só Fera+ de verdade gera no modo qualidade (premium do app não vale)', async () => {
   const { uid, token } = await loginAnonimo();
   // O app consegue escrever estado.premium, mas o servidor não confia nele.

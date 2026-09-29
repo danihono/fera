@@ -40,6 +40,8 @@ export type ProvaSalva = Rascunho & {
 
 export type TurmaRef = { codigo: string; nome: string };
 
+export type FaixaEtaria = 'crianca' | 'adolescente' | 'adulto';
+
 export type AppState = {
   onboarded: boolean;
   prova: Rascunho;
@@ -69,6 +71,8 @@ export type AppState = {
   sons: boolean;
   /** Estatísticas anônimas de uso (dá pra desligar nas Configurações). */
   metricas: boolean;
+  /** Faixa de idade informada ao criar conta (crianca = até 11: conta do responsável). */
+  faixaEtaria: FaixaEtaria | null;
   /** Conquistas que dependem de um momento (zero erros, madrugador, relâmpago, simulado, top 3). */
   marcos: string[];
   /** Última mudança (pra decidir entre aparelho e nuvem). */
@@ -147,6 +151,7 @@ const inicial = (): AppState => ({
   pediuNotificacao: false,
   sons: true,
   metricas: true,
+  faixaEtaria: null,
   marcos: [],
   atualizadoEm: 0,
 });
@@ -278,6 +283,8 @@ export const app = {
   marcarPedidoNotificacao: () => set({ pediuNotificacao: true }),
   setSons: (sons: boolean) => set({ sons }),
   setMetricas: (metricas: boolean) => set({ metricas }),
+  // Criança: sem estatísticas (o Google Analytics não é pra menores de 13).
+  setFaixaEtaria: (faixaEtaria: FaixaEtaria) => set({ faixaEtaria, ...(faixaEtaria === 'crianca' ? { metricas: false } : {}) }),
 };
 
 export function useApp() {

@@ -9,7 +9,8 @@
     "**/*.ts",
     "../src/ia/**/*.ts",
     "../src/lib/arquivos.ts",
-    "../src/data/lembretes.ts"
+    "../src/data/lembretes.ts",
+    "../functions/src/revenuecat.ts"
   ],
   "exclude": []
 }

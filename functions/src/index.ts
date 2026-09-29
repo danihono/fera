@@ -1,14 +1,17 @@
 // Cloud Functions do Fera: geração no modo qualidade (Fera+). Mesma linha de montagem do app (src/ia),
 // com cada tarefa no melhor modelo (src/ia/rotas.ts). O progresso vai pro Firestore e o app acompanha ao vivo.
 import { initializeApp } from 'firebase-admin/app';
+import { getAuth } from 'firebase-admin/auth';
 import { FieldValue, getFirestore, Timestamp } from 'firebase-admin/firestore';
 import { getDownloadURL, getStorage } from 'firebase-admin/storage';
 import { defineSecret } from 'firebase-functions/params';
 import { setGlobalOptions } from 'firebase-functions/v2';
-import { HttpsError, onCall, type CallableRequest } from 'firebase-functions/v2/https';
+import { HttpsError, onCall, onRequest, type CallableRequest } from 'firebase-functions/v2/https';
+import { onSchedule } from 'firebase-functions/v2/scheduler';
 import { ErroGeracao, gerarProva as linhaDeMontagem } from '../../src/ia/pipeline';
 import type { Anexo, FormatoId, PedidoGeracao, Progresso, ProvaGerada } from '../../src/ia/tipos';
 import { criarMotor, type Chaves } from './motor';
+import { mudancaDoEvento, type EventoRC } from './revenuecat';
 
 initializeApp();
 const db = getFirestore();
@@ -280,4 +283,55 @@ export const cancelarAssinaturaTeste = onCall({ cors: true, enforceAppCheck }, a
   if (!COMPRA_TESTE) throw fechada();
   await ref.set({ ativo: false, canceladaEm: FieldValue.serverTimestamp() }, { merge: true });
   return { ok: true };
+});
+
+// ——— Fera+ de verdade: webhook do RevenueCat (lojas) ———
+
+const REVENUECAT_WEBHOOK_AUTH = defineSecret('REVENUECAT_WEBHOOK_AUTH');
+
+/**
+ * O RevenueCat chama aqui a cada compra, renovação, cancelamento e vencimento.
+ * No painel dele: Integrations → Webhooks → URL desta função e "Authorization header" = o mesmo segredo.
+ */
+export const revenuecatWebhook = onRequest({ secrets: [REVENUECAT_WEBHOOK_AUTH], cors: false }, async (req, res) => {
+  const segredo = chave(REVENUECAT_WEBHOOK_AUTH.value());
+  if (req.method !== 'POST' || !segredo || req.get('authorization') !== segredo) {
+    res.status(401).send('não autorizado');
+    return;
+  }
+  const mudanca = mudancaDoEvento(((req.body ?? {}) as { event?: EventoRC }).event ?? { type: '' });
+  if (mudanca) {
+    const { expiraEm, ...resto } = mudanca.dados;
+    await db.doc(`assinaturas/${mudanca.uid}`).set(
+      { ...resto, expiraEm: expiraEm ? Timestamp.fromMillis(expiraEm) : null, atualizadoEm: FieldValue.serverTimestamp() },
+      { merge: true },
+    );
+  }
+  res.status(200).send('ok');
+});
+
+// ——— Faxina: contas anônimas abandonadas ———
+
+/** Dias sem abrir o app até apagar uma conta anônima (a pessoa não tem como voltar pra ela mesmo). */
+const DIAS_ANONIMO = Number(process.env.FERA_DIAS_ANONIMO || 90);
+
+/** Todo dia às 4h: apaga usuários anônimos parados há DIAS_ANONIMO dias (Firestore, imagens e o login). */
+export const limparAnonimos = onSchedule({ schedule: 'every day 04:00', timeZone: 'America/Sao_Paulo', timeoutSeconds: 540 }, async () => {
+  const limite = Date.now() - DIAS_ANONIMO * 86400000;
+  let pagina: string | undefined;
+  let apagados = 0;
+  do {
+    const lista = await getAuth().listUsers(1000, pagina);
+    for (const u of lista.users) {
+      const anonimo = u.providerData.length === 0 && !u.email;
+      const ultimo = Date.parse(u.metadata.lastRefreshTime ?? u.metadata.lastSignInTime ?? u.metadata.creationTime);
+      if (!anonimo || !(ultimo < limite)) continue;
+      await getStorage().bucket().deleteFiles({ prefix: `usuarios/${u.uid}/` }).catch(() => {});
+      await db.recursiveDelete(db.doc(`usuarios/${u.uid}`)).catch(() => {});
+      await getAuth().deleteUser(u.uid).catch(() => {});
+      apagados++;
+    }
+    pagina = lista.pageToken;
+  } while (pagina && apagados < 5000);
+  console.log(`limparAnonimos: ${apagados} contas anônimas apagadas`);
 });

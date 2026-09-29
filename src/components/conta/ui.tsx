@@ -91,6 +91,25 @@ export function Marcar({ marcado, onChange, children }: { marcado: boolean; onCh
   );
 }
 
+/** Escolha única em pílulas (ex.: faixa de idade). */
+export function Chips<T extends string>({ opcoes, valor, onChange, rotulo }: { opcoes: { id: T; label: string }[]; valor: T | null; onChange: (v: T) => void; rotulo: string }) {
+  return (
+    <View style={{ gap: 6 }}>
+      <Text style={styles.chipsRotulo}>{rotulo}</Text>
+      <View style={styles.chips} accessibilityRole="radiogroup" accessibilityLabel={rotulo}>
+        {opcoes.map((o) => {
+          const on = o.id === valor;
+          return (
+            <Pressable key={o.id} accessibilityRole="radio" accessibilityState={{ checked: on }} onPress={() => onChange(o.id)} style={[styles.chip, on && styles.chipOn]}>
+              <Text style={[styles.chipTexto, on && { color: colors.redText }]}>{o.label}</Text>
+            </Pressable>
+          );
+        })}
+      </View>
+    </View>
+  );
+}
+
 /** Link de texto vermelho (48 de altura pra dar pra tocar). */
 export function LinkTexto({ label, onPress, alinhar = 'center', antes }: { label: string; onPress: () => void; alinhar?: 'center' | 'flex-end' | 'flex-start'; antes?: string }) {
   return (
@@ -125,6 +144,11 @@ const styles = StyleSheet.create({
   caixa: { width: 26, height: 26, borderRadius: 8, borderWidth: sizes.borderWidth, borderColor: colors.border, alignItems: 'center', justifyContent: 'center' },
   caixaOn: { borderWidth: 0, backgroundColor: colors.red },
   marcarTexto: { flex: 1, fontFamily: fonts.nunito700, fontSize: 14, lineHeight: 20, color: colors.textMuted },
+  chipsRotulo: { fontFamily: fonts.nunito800, fontSize: 14, color: colors.text, paddingHorizontal: 4 },
+  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  chip: { height: 40, paddingHorizontal: 14, borderRadius: radius.pill, borderWidth: sizes.borderWidth, borderColor: colors.border, backgroundColor: colors.white, justifyContent: 'center' },
+  chipOn: { borderColor: colors.red, backgroundColor: colors.redSoft },
+  chipTexto: { fontFamily: fonts.nunito800, fontSize: 14, color: colors.text },
   link: { minHeight: sizes.touch, justifyContent: 'center', paddingHorizontal: 4 },
   linkTexto: { fontFamily: fonts.nunito800, fontSize: 15, color: colors.redText, textAlign: 'center' },
   linkAntes: { fontFamily: fonts.nunito700, color: colors.textMuted },

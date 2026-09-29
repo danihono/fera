@@ -120,6 +120,17 @@ Garante que os pedidos vêm do seu app, e não de um script gastando a cota do G
 - **Provas da turma:** quem gerou toca em "Compartilhar com a turma" no detalhe da prova; a sala vê na aba Turma e estuda sem gastar geração. Precisa das regras novas: `firebase deploy --only firestore`.
 - **Convite por link:** "Convidar a turma" manda `https://<projeto>.web.app/turma?codigo=FERA-XXX`. Pra usar outro domínio: `EXPO_PUBLIC_SITE_URL=https://seu-site` no `.env`.
 
+## Lojas, pagamento e faxina
+
+- Checklist completo, textos da ficha e prints: [LOJAS.md](LOJAS.md).
+- **Webhook do RevenueCat** (`revenuecatWebhook`): ativa/renova/cancela o Fera+ em `assinaturas/{uid}`. Antes do próximo `firebase deploy --only functions`, crie o segredo (o deploy pede se faltar):
+  ```bash
+  firebase functions:secrets:set REVENUECAT_WEBHOOK_AUTH   # uma senha longa; ou "-" pra deixar desligado por enquanto
+  ```
+- **Faxina de anônimos** (`limparAnonimos`, todo dia às 4h): apaga contas anônimas paradas há `FERA_DIAS_ANONIMO` dias (90). Usa o Cloud Scheduler (plano Blaze).
+- **Menores de 12:** no Criar conta, "Até 11" faz a conta ser do responsável (e-mail e aceite dele) e desliga as estatísticas.
+- **Página pública de exclusão** (Google Play pede): `https://<projeto>.web.app/excluir-conta`.
+
 ## Métricas e erros
 
 - **Google Analytics** (web): com `EXPO_PUBLIC_FIREBASE_MEASUREMENT_ID` no `.env` (já está), o site manda os eventos do funil: `onboarding_fim`, `conteudo_enviado`, `prova_gerada` / `prova_falhou`, `missao_fim`, `conta_criada`, `login`, `premium_visto` / `premium_assinado`, `turma_criada` / `turma_entrou`, `prova_compartilhada`, `prova_da_turma_estudada`, `lembrete_permissao`, `questao_reportada` e `erro_js`. Veja em Firebase → **Analytics → Eventos** (ou **DebugView** com a extensão "Google Analytics Debugger"). Monte o funil em Analytics → Explorar → Exploração de funil: onboarding_fim → conteudo_enviado → prova_gerada → missao_fim.

@@ -26,7 +26,7 @@ jobs:
       # Antes de publicar: tipos, lint e os testes da linha de montagem da IA (sem chamar IA nenhuma).
       - run: npx tsc --noEmit && npx tsc --noEmit -p tests
       - run: npx expo lint
-      - run: npm run test:ia
+      - run: npm test   # IA + leitura de arquivos
       - name: Cloud Functions compilam
         run: npm --prefix functions ci && npm --prefix functions run typecheck && npm --prefix functions run build
       # A config do Firebase vem do .env do repositório (é pública).

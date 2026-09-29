@@ -22,14 +22,16 @@ import { InfoSheet } from '@/components/InfoSheet';
 import { Linha, Secao } from '@/components/Lista';
 import type { RugiMood } from '@/components/Rugi';
 import { ScreenHeader } from '@/components/ScreenHeader';
-import { SerieSheet } from '@/components/SerieSheet';
+import { OpcoesSheet, SerieSheet } from '@/components/SerieSheet';
 import { Toggle } from '@/components/Toggle';
 import { contasDisponiveis, excluirConta, sair as sairDaConta, traduzir, useConta } from '@/data/conta';
 import { DESCRICAO_MODO, modoIA } from '@/data/geracao';
 import { app, useApp } from '@/data/store';
+import { notificacoesDisponiveis, permitirNotificacoes } from '@/lib/notificacoes';
 import { colors, fonts, sizes, space } from '@/theme';
 
 const MINUTOS = [5, 10, 15];
+const HORARIOS = ['07:00', '12:00', '14:00', '17:00', '18:00', '19:00', '20:00', '21:00'];
 /** Valor curto na linha (o nome completo aparece na sheet). */
 const MODO_CURTO = { demo: 'Demonstração', gratis: 'Grátis', qualidade: 'Fera+' } as const;
 
@@ -50,16 +52,27 @@ const irProComeco = () => {
 
 export default function Configuracoes() {
   const insets = useSafeAreaInsets();
-  const { prova, lembrete, sons, premium, serie, provaAtual } = useApp();
+  const { prova, lembrete, lembreteHora, sons, premium, serie, provaAtual } = useApp();
   const conta = useConta();
   const comEmail = !!conta && !conta.anonimo;
   const [escolhendoSerie, setEscolhendoSerie] = useState(false);
+  const [escolhendoHora, setEscolhendoHora] = useState(false);
   const modo = modoIA(premium);
   const [info, setInfo] = useState<Info | null>(null);
 
   const proximoMinuto = () => {
     const i = MINUTOS.indexOf(prova.minutosDia);
     app.setProva({ minutosDia: MINUTOS[(i + 1) % MINUTOS.length] });
+  };
+
+  // Ligar o lembrete pede a permissão do celular; negada, ele fica desligado e a gente explica.
+  const trocarLembrete = async (ligar: boolean) => {
+    if (!ligar || !notificacoesDisponiveis) return app.setLembrete(ligar);
+    if (await permitirNotificacoes(true)) app.setLembrete(true);
+    else {
+      app.setLembrete(false);
+      setInfo({ mood: 'impaciente', title: 'Notificação bloqueada', text: 'Pra eu te lembrar, libera as notificações do Fera nos ajustes do celular.', button: 'Beleza' });
+    }
   };
 
   const falhou = (e: unknown) => setInfo({ mood: 'pensativo', title: 'Não deu', text: traduzir(e).message, button: 'Beleza' });
@@ -113,7 +126,13 @@ export default function Configuracoes() {
       </Secao>
 
       <Secao titulo="ESTUDO">
-        <Linha icone={<BellIcon />} rotulo="Lembrete diário" sub="Todo dia às 19:00" direita={<Toggle label="Lembrete diário" value={lembrete} onChange={app.setLembrete} />} />
+        <Linha
+          icone={<BellIcon />}
+          rotulo="Lembrete diário"
+          sub={notificacoesDisponiveis ? `Todo dia às ${lembreteHora} · toca pra mudar` : 'Só no app do celular'}
+          onPress={notificacoesDisponiveis ? () => setEscolhendoHora(true) : undefined}
+          direita={<Toggle label="Lembrete diário" value={lembrete} onChange={trocarLembrete} />}
+        />
         <Linha icone={<TimerIcon size={22} />} rotulo="Tempo por dia" valor={`${prova.minutosDia} min`} onPress={proximoMinuto} />
         <Linha icone={<SoundIcon />} rotulo="Sons e vibração" direita={<Toggle label="Sons e vibração" value={sons} onChange={app.setSons} />} />
         <Linha
@@ -153,6 +172,18 @@ export default function Configuracoes() {
 
       {info && <InfoSheet {...info} onClose={() => setInfo(null)} />}
       {escolhendoSerie && <SerieSheet serie={serie} onClose={() => setEscolhendoSerie(false)} />}
+      {escolhendoHora && (
+        <OpcoesSheet
+          titulo="Horário do lembrete"
+          opcoes={HORARIOS}
+          valor={lembreteHora}
+          onEscolher={(h) => {
+            app.setLembreteHora(h);
+            trocarLembrete(true);
+          }}
+          onClose={() => setEscolhendoHora(false)}
+        />
+      )}
     </ScrollView>
   );
 }

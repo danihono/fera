@@ -8,8 +8,20 @@ import type { ProvaSalva } from './store';
 export type MissaoTela = { titulo: string; subtitulo: string; numero: number | null; questoes: Question[] };
 
 const REVISAO_MAX = 8;
+const REFORCO_MAX = 6;
 
-/** id: "1"…"5" (trilha), "teste", "simulado" ou "revisao" (véspera). */
+/** Tópicos em que a pessoa erra 40% ou mais (com pelo menos 2 respostas), do pior pro melhor. */
+export function topicosFracos(prova: Pick<ProvaSalva, 'erros' | 'acertosTopico'> | null): string[] {
+  if (!prova) return [];
+  const certas = prova.acertosTopico ?? {};
+  return Object.entries(prova.erros)
+    .map(([t, e]) => ({ t, e, total: e + (certas[t] ?? 0) }))
+    .filter((x) => x.total >= 2 && x.e / x.total >= 0.4)
+    .sort((a, b) => b.e / b.total - a.e / a.total || b.e - a.e)
+    .map((x) => x.t);
+}
+
+/** id: "1"…"5" (trilha), "teste", "simulado", "revisao" (véspera) ou "reforco" (tópicos fracos). */
 export function montarMissao(id: string, prova: ProvaSalva | null, conteudo: ProvaGerada | null): MissaoTela | null {
   // Sem prova gerada (prévias), usa a missão 3 de exemplo, como no design.
   const missoes = conteudo?.missoes ?? missoesExemplo;
@@ -36,6 +48,18 @@ export function montarMissao(id: string, prova: ProvaSalva | null, conteudo: Pro
       .slice(0, REVISAO_MAX)
       .map((x) => x.q);
     return { titulo: 'Revisão da véspera', subtitulo: `${topico} · Revisão`, numero: null, questoes: escolhidas.map(paraTela) };
+  }
+  if (id === 'reforco') {
+    // Reforço: volta nas questões dos tópicos fracos (lembrar de novo é o que fixa).
+    const fracos = topicosFracos(prova);
+    if (!fracos.length) return null;
+    const escolhidas = missoes
+      .flatMap((m) => m.questoes)
+      .filter((q) => fracos.includes(q.topico))
+      .sort((a, b) => fracos.indexOf(a.topico) - fracos.indexOf(b.topico))
+      .slice(0, REFORCO_MAX);
+    if (!escolhidas.length) return null;
+    return { titulo: 'Reforço', subtitulo: `${topico} · Reforço`, numero: null, questoes: escolhidas.map(paraTela) };
   }
   return null;
 }

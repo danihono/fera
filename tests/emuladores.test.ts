@@ -125,6 +125,23 @@ test('function: só Fera+ de verdade gera no modo qualidade (premium do app não
   assert.equal(sem.corpo.error?.status, 'UNAUTHENTICATED');
 });
 
+test('regras: provas da turma (membro publica, todo mundo lê, só o autor apaga)', async () => {
+  await env.withSecurityRulesDisabled(async (ctx) => {
+    await setDoc(doc(ctx.firestore(), 'turmas/FERA-P2V'), { nome: '2º B', criadaPor: 'bia', criadaEm: 1 });
+    await setDoc(doc(ctx.firestore(), 'turmas/FERA-P2V/membros/bia'), { nome: 'Bia', inicial: 'B', xp: 0, atualizadoEm: 1 });
+  });
+  const bia = env.authenticatedContext('bia').firestore();
+  const ana = env.authenticatedContext('ana').firestore();
+  const prova = { autor: 'bia', autorNome: 'Bia', materia: 'História', icone: 'historia', topico: 'Revolução Francesa', data: '2026-10-02', conteudo: { missoes: [] } };
+  await assertSucceeds(setDoc(doc(bia, 'turmas/FERA-P2V/provas/pabc123'), prova));
+  await assertFails(setDoc(doc(ana, 'turmas/FERA-P2V/provas/pana123'), { ...prova, autor: 'ana' })); // ana não é da turma
+  await assertFails(setDoc(doc(bia, 'turmas/FERA-P2V/provas/poutro1'), { ...prova, autor: 'ana' })); // autor falso
+  await assertSucceeds(getDoc(doc(ana, 'turmas/FERA-P2V/provas/pabc123')));
+  await assertFails(deleteDoc(doc(ana, 'turmas/FERA-P2V/provas/pabc123')));
+  await assertFails(setDoc(doc(ana, 'turmas/FERA-P2V/provas/pabc123'), { ...prova, autor: 'ana' }));
+  await assertSucceeds(deleteDoc(doc(bia, 'turmas/FERA-P2V/provas/pabc123')));
+});
+
 test('regras: assinatura e uso do projeto só o servidor escreve', async () => {
   const eu = env.authenticatedContext('bia').firestore();
   await assertFails(setDoc(doc(eu, 'assinaturas/bia'), { ativo: true }));
@@ -159,12 +176,10 @@ test('function: compra de teste ativa e cancela o Fera+; o teto do projeto segur
 
 test('function: gera a prova, grava o progresso e o conteúdo; formato extra junta no mesmo conteúdo', async () => {
   const { uid, token } = await loginAnonimo();
-  await env.withSecurityRulesDisabled((ctx) =>
-    Promise.all([
-      setDoc(doc(ctx.firestore(), `usuarios/${uid}`), { estado: { serie: '2º ano (EM)', provas: [{ id: 'pquali01', data: new Date(Date.now() + 3 * 86400000).toISOString(), minutosDia: 10 }] } }),
-      setDoc(doc(ctx.firestore(), `assinaturas/${uid}`), { ativo: true, plano: 'anual', origem: 'teste' }),
-    ]),
-  );
+  await env.withSecurityRulesDisabled(async (ctx) => {
+    await setDoc(doc(ctx.firestore(), `usuarios/${uid}`), { estado: { serie: '2º ano (EM)', provas: [{ id: 'pquali01', data: new Date(Date.now() + 3 * 86400000).toISOString(), minutosDia: 10 }] } });
+    await setDoc(doc(ctx.firestore(), `assinaturas/${uid}`), { ativo: true, plano: 'anual', origem: 'teste' });
+  });
   const invalido = await chamar('gerarProva', token, { provaId: '../x', pedido });
   assert.equal(invalido.corpo.error?.status, 'INVALID_ARGUMENT');
 

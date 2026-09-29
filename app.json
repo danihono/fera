@@ -53,6 +53,12 @@
           "cameraPermission": "O Fera usa a câmera pra fotografar a matéria da prova.",
           "microphonePermission": false
         }
+      ],
+      [
+        "expo-notifications",
+        {
+          "color": "#E8322B"
+        }
       ]
     ],
     "experiments": {

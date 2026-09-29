@@ -1,5 +1,6 @@
 // 10 · Turma (ranking) — canvas artboard Turma.dc.html
 import * as Clipboard from 'expo-clipboard';
+import { useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Pressable, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withDelay, withTiming } from 'react-native-reanimated';
@@ -11,11 +12,13 @@ import { CheckIcon, ChevronDownIcon, CopyIcon, CrownIcon, ShareIcon } from '@/co
 import { InfoSheet } from '@/components/InfoSheet';
 import { TextInputSheet } from '@/components/TextInputSheet';
 import { Pilulas } from '@/components/Pilulas';
+import { ProvasDaTurma } from '@/components/turma/ProvasDaTurma';
 import { mockTurma, type Colega } from '@/data/mock';
 import { criarTurma, entrarNaTurmaNuvem, ouvirRanking, type Membro } from '@/data/nuvem';
 import { app, nomeDe, useApp } from '@/data/store';
 import { firebaseLigado, usuarioAtual } from '@/lib/firebase';
 import { shortDate } from '@/lib/dates';
+import { linkDaTurma } from '@/lib/links';
 import { colors, fonts, radius, sizes, solidShadow, space, type } from '@/theme';
 
 const fmt = (n: number) => n.toLocaleString('pt-BR');
@@ -37,7 +40,7 @@ export default function Turma() {
   const { prova, xp, turmas } = estado;
   const [sheet, setSheet] = useState<null | 'turmas' | 'codigo' | 'criar' | 'copiado' | 'nome'>(null);
   // Na turma o nome aparece pros colegas: sem nome ainda, pergunta antes de criar/entrar.
-  const [depoisDoNome, setDepoisDoNome] = useState<'codigo' | 'criar' | null>(null);
+  const [depoisDoNome, setDepoisDoNome] = useState<'codigo' | 'criar' | 'convite' | null>(null);
   const abrir = (proxima: 'codigo' | 'criar') => {
     if (nuvem && !estado.nome.trim()) {
       setDepoisDoNome(proxima);
@@ -82,6 +85,21 @@ export default function Turma() {
     if (t) app.entrarNaTurma(t);
     else setAviso(`Não achei a turma ${c}. Confere o código com quem te chamou.`);
   };
+  // Convite por link (…/turma?codigo=FERA-72K): pergunta se quer entrar.
+  const { codigo: convite } = useLocalSearchParams<{ codigo?: string }>();
+  const [dispensado, setDispensado] = useState<string | null>(null);
+  const [convitePendente, setConvitePendente] = useState<string | null>(null);
+  const codigoConvite = convite?.trim().toUpperCase() ?? '';
+  const conviteAberto =
+    /^FERA-[A-Z0-9]{3}$/.test(codigoConvite) && !turmas.some((t) => t.codigo === codigoConvite) && dispensado !== codigoConvite ? codigoConvite : null;
+  const aceitarConvite = (c: string) => {
+    if (nuvem && !estado.nome.trim()) {
+      setConvitePendente(c);
+      setDepoisDoNome('convite');
+      setSheet('nome');
+    } else entrar(c);
+  };
+
   const criar = async (nome: string) => {
     const t = await criarTurma(nome).catch(() => null);
     if (t) app.entrarNaTurma(t);
@@ -171,7 +189,7 @@ export default function Turma() {
             </Pressable>
             <Pressable
               accessibilityRole="button"
-              onPress={() => Share.share({ message: `Entra na nossa sala no Fera: ${turma.codigo}` })}
+              onPress={() => Share.share({ message: `Entra na nossa turma no Fera! Código ${turma.codigo}\n${linkDaTurma(turma.codigo)}` })}
               style={({ pressed }) => [
                 styles.invite,
                 { boxShadow: pressed ? 'none' : solidShadow(colors.border), transform: [{ translateY: pressed ? sizes.shadow : 0 }] },
@@ -181,6 +199,8 @@ export default function Turma() {
               <Text style={styles.inviteText}>Convidar a turma</Text>
             </Pressable>
           </View>
+
+          {nuvem && <ProvasDaTurma codigo={turma.codigo} />}
         </>
       )}
 
@@ -231,7 +251,11 @@ export default function Turma() {
           onSubmit={(nome) => {
             app.setNome(nome);
             setDepoisDoNome(null);
-            setSheet(depoisDoNome);
+            if (depoisDoNome === 'convite') {
+              setSheet(null);
+              if (convitePendente) entrar(convitePendente);
+              setConvitePendente(null);
+            } else setSheet(depoisDoNome);
           }}
           onClose={() => setSheet((x) => (x === 'nome' ? null : x))}
         />
@@ -246,6 +270,17 @@ export default function Turma() {
           text={`Manda o ${turma.codigo} pra galera entrar na sala.`}
           button="Beleza"
           onClose={() => setSheet(null)}
+        />
+      )}
+      {conviteAberto && !sheet && (
+        <InfoSheet
+          mood="acenando"
+          title={`Entrar na turma ${conviteAberto}?`}
+          text="Te chamaram pra estudar junto: ranking da sala e as provas que a galera já gerou."
+          button="Entrar"
+          onConfirm={() => aceitarConvite(conviteAberto)}
+          secondary={{ label: 'Agora não' }}
+          onClose={() => setDispensado(conviteAberto)}
         />
       )}
       {aviso && <InfoSheet mood="pensativo" title="Opa!" text={aviso} button="Beleza" onClose={() => setAviso(null)} />}

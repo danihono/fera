@@ -8,7 +8,8 @@
   "include": [
     "**/*.ts",
     "../src/ia/**/*.ts",
-    "../src/lib/arquivos.ts"
+    "../src/lib/arquivos.ts",
+    "../src/data/lembretes.ts"
   ],
   "exclude": []
 }

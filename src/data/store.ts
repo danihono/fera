@@ -34,6 +34,8 @@ export type ProvaSalva = Rascunho & {
   acertos: number;
   respondidas: number;
   criadaEm: string;
+  /** Veio de uma prova compartilhada na turma ("FERA-72K/<id>"). */
+  origem?: string;
 };
 
 export type TurmaRef = { codigo: string; nome: string };
@@ -60,6 +62,10 @@ export type AppState = {
   fotoMini: string | null;
   serie: string;
   lembrete: boolean;
+  /** Horário do lembrete diário ("19:00"). */
+  lembreteHora: string;
+  /** Já perguntamos se pode mandar notificação (uma vez, depois da 1ª missão). */
+  pediuNotificacao: boolean;
   sons: boolean;
   /** Conquistas que dependem de um momento (zero erros, madrugador, relâmpago, simulado, top 3). */
   marcos: string[];
@@ -135,6 +141,8 @@ const inicial = (): AppState => ({
   fotoMini: null,
   serie: '2º ano (EM)',
   lembrete: true,
+  lembreteHora: '19:00',
+  pediuNotificacao: false,
   sons: true,
   marcos: [],
   atualizadoEm: 0,
@@ -216,7 +224,7 @@ export const app = {
   concluirMissao: (r: {
     provaId: string | null;
     numero: number | null;
-    tipo: 'trilha' | 'teste' | 'simulado' | 'revisao';
+    tipo: 'trilha' | 'teste' | 'simulado' | 'revisao' | 'reforco';
     xp: number;
     acertos: number;
     respondidas: number;
@@ -263,6 +271,8 @@ export const app = {
   setFoto: (foto: string | null, fotoMini: string | null) => set({ foto, fotoMini }),
   setSerie: (serie: string) => set({ serie }),
   setLembrete: (lembrete: boolean) => set({ lembrete }),
+  setLembreteHora: (lembreteHora: string) => set({ lembreteHora }),
+  marcarPedidoNotificacao: () => set({ pediuNotificacao: true }),
   setSons: (sons: boolean) => set({ sons }),
 };
 

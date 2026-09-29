@@ -14,6 +14,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { SemInternet } from '@/components/SemInternet';
+import { iniciarLembretes, useAbrirPelaNotificacao } from '@/lib/notificacoes';
 import { iniciarNuvem } from '@/data/nuvem';
 import { app } from '@/data/store';
 import { colors } from '@/theme';
@@ -35,11 +36,15 @@ export default function RootLayout() {
   // Estado salvo no aparelho (onboarding feito, prova, XP, Fera+…).
   const [hydrated, setHydrated] = useState(false);
   useEffect(() => {
+    let pararLembretes: (() => void) | null = null;
     app.hydrate().finally(() => {
       setHydrated(true);
       // Login anônimo e cópia na nuvem (se o Firebase estiver configurado), sem segurar o splash.
       iniciarNuvem().catch(() => {});
+      // Lembretes locais: reagenda sempre que o estado muda.
+      pararLembretes = iniciarLembretes();
     });
+    return () => pararLembretes?.();
   }, []);
 
   const ready = loaded && hydrated;
@@ -83,6 +88,13 @@ export default function RootLayout() {
         <Stack.Screen name="+not-found" />
       </Stack>
       <SemInternet />
+      <AbrirPelaNotificacao />
     </SafeAreaProvider>
   );
+}
+
+/** Tocou numa notificação: abre a tela dela (fica dentro do navegador, depois que ele existe). */
+function AbrirPelaNotificacao() {
+  useAbrirPelaNotificacao();
+  return null;
 }

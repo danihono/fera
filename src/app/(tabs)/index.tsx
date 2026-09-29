@@ -18,9 +18,11 @@ import { FeraButton } from '@/components/FeraButton';
 import { CheckIcon, LockIcon, StarIcon, TrophyIcon } from '@/components/icons';
 import { ProvaCard } from '@/components/ProvaCard';
 import { Rugi } from '@/components/Rugi';
+import { InfoSheet } from '@/components/InfoSheet';
 import { Pilulas } from '@/components/Pilulas';
 import { useConteudo } from '@/data/conteudo';
 import { app, diaDe, diasAte, hoje, provaAtualDe, proximaMissao, sequenciaQuebrada, useApp } from '@/data/store';
+import { notificacoesDisponiveis, permitirNotificacoes } from '@/lib/notificacoes';
 import { colors, fonts, radius, sizes, solidShadow, space } from '@/theme';
 
 
@@ -82,6 +84,7 @@ export default function Inicio() {
   const bobStyle = useAnimatedStyle(() => ({ transform: [{ translateY: bob.value }] }));
 
   const card = prova ?? rascunho;
+  const pedirLembrete = notificacoesDisponiveis && !estado.pediuNotificacao && estado.provas.some((p) => p.feitas.length > 0);
   const total = Math.min(SLOTS.length, prova?.totalMissoes ?? 0);
   const atual = prova ? proximaMissao({ feitas: prova.feitas, totalMissoes: total }) : null; // 1, 2, … ou null
   const k = atual != null ? atual - 1 : total; // índice da bolha atual (total = Dia D)
@@ -184,6 +187,19 @@ export default function Inicio() {
             </View>
           </View>
         </View>
+      )}
+
+      {/* Uma vez, depois da 1ª missão: pede pra lembrar (é quando faz sentido pra pessoa). Fora do design. */}
+      {pedirLembrete && (
+        <InfoSheet
+          mood="impaciente"
+          title="Te lembro todo dia?"
+          text={`Às ${estado.lembreteHora} eu aviso a missão do dia, e na véspera da prova também. Dá pra mudar o horário nas Configurações.`}
+          button="Pode lembrar"
+          onConfirm={() => permitirNotificacoes(true).then((ok) => app.setLembrete(ok))}
+          secondary={{ label: 'Agora não' }}
+          onClose={app.marcarPedidoNotificacao}
+        />
       )}
     </ScrollView>
   );

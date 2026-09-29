@@ -110,7 +110,7 @@ function Jogo({ id, missao, premium, provaId }: { id: string; missao: NonNullabl
       return;
     }
     const xp = acertos * XP_POR_ACERTO + XP_BONUS_MISSAO;
-    app.concluirMissao({ provaId, numero: missao.numero, tipo: missao.numero != null ? 'trilha' : (id as 'teste' | 'simulado' | 'revisao'), xp, acertos, respondidas: total, errosPorTopico: erros, acertosPorTopico: certosTopico });
+    app.concluirMissao({ provaId, numero: missao.numero, tipo: missao.numero != null ? 'trilha' : (id as 'teste' | 'simulado' | 'revisao' | 'reforco'), xp, acertos, respondidas: total, errosPorTopico: erros, acertosPorTopico: certosTopico });
     vibrar('fim');
     router.replace({
       pathname: '/missao/fim',

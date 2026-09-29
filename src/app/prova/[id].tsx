@@ -7,14 +7,18 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Aviso } from '@/components/conta/ui';
 import { DataSheet } from '@/components/DataSheet';
 import { FeraButton } from '@/components/FeraButton';
-import { BookWaveIcon, CalendarEditIcon, TrashIcon, TrophyIcon } from '@/components/icons';
+import { BookWaveIcon, CalendarEditIcon, ShareIcon, TrashIcon, TrophyIcon } from '@/components/icons';
 import { InfoSheet } from '@/components/InfoSheet';
 import { Linha, Secao } from '@/components/Lista';
 import { ProvaCard } from '@/components/ProvaCard';
+import type { RugiMood } from '@/components/Rugi';
 import { ScreenHeader } from '@/components/ScreenHeader';
 import { apagarConteudo, useConteudo } from '@/data/conteudo';
+import { topicosFracos } from '@/data/missoes';
+import { compartilharProva } from '@/data/nuvem';
 import { app, diasAte, proximaMissao, useApp } from '@/data/store';
 import { shortDate } from '@/lib/dates';
+import { firebaseLigado } from '@/lib/firebase';
 import { colors, fonts, radius, sizes, space } from '@/theme';
 
 type Desempenho = { nome: string; certas: number; erradas: number };
@@ -28,6 +32,7 @@ export default function DetalheDaProva() {
   const [mudandoData, setMudandoData] = useState(false);
   const [excluindo, setExcluindo] = useState(false);
   const [trocou, setTrocou] = useState(false);
+  const [aviso, setAviso] = useState<{ titulo: string; texto: string; mood: RugiMood } | null>(null);
 
   if (!prova) {
     return (
@@ -55,6 +60,18 @@ export default function DetalheDaProva() {
     app.setProvaAtual(prova.id);
     if (atual && proxima) router.push(`/missao/${proxima}`);
     else router.navigate('/');
+  };
+
+  const compartilhar = async () => {
+    const turma = estado.turma;
+    if (!turma) return router.navigate('/turma');
+    if (!conteudo) return;
+    try {
+      await compartilharProva(turma.codigo, prova, conteudo);
+      setAviso({ titulo: 'Tá na turma!', texto: `A galera da ${turma.nome} já vê essa prova na aba Turma.`, mood: 'comemorando' });
+    } catch {
+      setAviso({ titulo: 'Não deu', texto: 'Confere a internet e tenta de novo.', mood: 'pensativo' });
+    }
   };
 
   const excluir = () => {
@@ -103,13 +120,31 @@ export default function DetalheDaProva() {
           </View>
         )}
         {fraco && (
-          <View style={{ marginTop: 12 }}>
+          <View style={{ marginTop: 12, gap: 12 }}>
             <Aviso>{`Pra revisar: ${fraco.nome}. ${passou ? 'Vale rever antes da próxima prova.' : 'A revisão da véspera foca nele.'}`}</Aviso>
+            {topicosFracos(prova).length > 0 && (
+              <FeraButton
+                label="Reforçar agora"
+                variant="secondary"
+                onPress={() => {
+                  app.setProvaAtual(prova.id);
+                  router.push('/missao/reforco');
+                }}
+              />
+            )}
           </View>
         )}
 
         <Secao titulo="PROVA">
           {atual && <Linha icone={<BookWaveIcon />} rotulo="Materiais" sub="Resumo, explicação e o que a IA gerou" onPress={() => router.push('/prova/materiais')} />}
+          {firebaseLigado && !prova.origem && conteudo && (
+            <Linha
+              icone={<ShareIcon size={22} color={colors.red} />}
+              rotulo="Compartilhar com a turma"
+              sub={estado.turma ? `A ${estado.turma.nome} estuda sem gastar geração` : 'Entre numa turma primeiro'}
+              onPress={compartilhar}
+            />
+          )}
           <Linha icone={<CalendarEditIcon />} rotulo="Mudar a data" valor={shortDate(prova.data).toLowerCase()} onPress={() => setMudandoData(true)} />
           {!passou && <Linha icone={<TrophyIcon size={22} />} rotulo="Modo véspera" sub="Revisão rápida do que mais cai" onPress={() => router.push(`/vespera/${prova.id}`)} />}
           <Linha icone={<TrashIcon color={colors.errorText} />} rotulo="Excluir prova" perigo onPress={() => setExcluindo(true)} />
@@ -129,6 +164,7 @@ export default function DetalheDaProva() {
           onClose={() => setExcluindo(false)}
         />
       )}
+      {aviso && <InfoSheet mood={aviso.mood} title={aviso.titulo} text={aviso.texto} button="Beleza" onClose={() => setAviso(null)} />}
       {trocou && (
         <InfoSheet
           mood="forca"

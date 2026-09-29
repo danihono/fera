@@ -114,6 +114,12 @@ Garante que os pedidos vêm do seu app, e não de um script gastando a cota do G
 
 ---
 
+## Lembretes e turma
+
+- **Notificações:** são locais (o próprio celular agenda: lembrete diário no horário escolhido, "sua sequência acaba hoje", véspera e dia da prova). Não precisa de servidor nem de chave. Funcionam no Expo Go e no build; na web não existem. O app pede a permissão depois da 1ª missão, ou quando a pessoa liga o lembrete nas Configurações.
+- **Provas da turma:** quem gerou toca em "Compartilhar com a turma" no detalhe da prova; a sala vê na aba Turma e estuda sem gastar geração. Precisa das regras novas: `firebase deploy --only firestore`.
+- **Convite por link:** "Convidar a turma" manda `https://<projeto>.web.app/turma?codigo=FERA-XXX`. Pra usar outro domínio: `EXPO_PUBLIC_SITE_URL=https://seu-site` no `.env`.
+
 ## 3. Testar tudo no computador (emuladores, sem conta nenhuma)
 
 Precisa de Java instalado. O projeto `demo-fera` só existe nos emuladores e usa a IA de mentira (`functions/.env.demo-fera`).

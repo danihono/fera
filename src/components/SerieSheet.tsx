@@ -4,18 +4,20 @@ import { CheckIcon } from '@/components/icons';
 import { app, SERIES } from '@/data/store';
 import { colors, fonts, sizes } from '@/theme';
 
-/** Escolha do ano escolar (Configurações e Minha conta). */
-export function SerieSheet({ serie, onClose }: { serie: string; onClose: () => void }) {
+type Props = { titulo: string; opcoes: readonly string[]; valor: string; onEscolher: (v: string) => void; onClose: () => void };
+
+/** Lista de opções com rádio (ano escolar, horário do lembrete…). */
+export function OpcoesSheet({ titulo, opcoes, valor, onEscolher, onClose }: Props) {
   return (
     <BottomSheet onClose={onClose}>
       {(close) => (
         <>
-          <Text style={styles.titulo}>Ano escolar</Text>
+          <Text style={styles.titulo}>{titulo}</Text>
           <ScrollView style={{ maxHeight: 420 }} showsVerticalScrollIndicator={false}>
-            {SERIES.map((s) => {
-              const on = s === serie;
+            {opcoes.map((s) => {
+              const on = s === valor;
               return (
-                <Pressable key={s} accessibilityRole="radio" accessibilityState={{ checked: on }} onPress={() => close(() => app.setSerie(s))} style={styles.linha}>
+                <Pressable key={s} accessibilityRole="radio" accessibilityState={{ checked: on }} onPress={() => close(() => onEscolher(s))} style={styles.linha}>
                   <View style={[styles.radio, on && styles.radioOn]}>{on && <CheckIcon size={14} color={colors.white} />}</View>
                   <Text style={[styles.texto, on && { color: colors.redText }]}>{s}</Text>
                 </Pressable>
@@ -26,6 +28,11 @@ export function SerieSheet({ serie, onClose }: { serie: string; onClose: () => v
       )}
     </BottomSheet>
   );
+}
+
+/** Escolha do ano escolar (Configurações e Minha conta). */
+export function SerieSheet({ serie, onClose }: { serie: string; onClose: () => void }) {
+  return <OpcoesSheet titulo="Ano escolar" opcoes={SERIES} valor={serie} onEscolher={app.setSerie} onClose={onClose} />;
 }
 
 const styles = StyleSheet.create({

@@ -7,7 +7,7 @@
 // turmas/{codigo}                   nome da turma
 // turmas/{codigo}/membros/{uid}     nome e XP de cada um (ranking)
 import { deleteUser, signOut } from 'firebase/auth';
-import { collection, deleteDoc, doc, getDoc, getDocs, onSnapshot, serverTimestamp, setDoc, type Unsubscribe } from 'firebase/firestore';
+import { collection, deleteDoc, doc, getDoc, getDocs, onSnapshot, query, serverTimestamp, setDoc, where, type Unsubscribe } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
 import type { Progresso, ProvaGerada } from '@/ia/tipos';
 import { entrar, firebase, usuarioAtual } from '@/lib/firebase';
@@ -176,6 +176,59 @@ export function ouvirRanking(codigo: string, cb: (m: Membro[]) => void): Unsubsc
   );
 }
 
+// ——— Provas da turma: gera uma vez, a sala toda estuda (sem gastar outra geração) ———
+
+export type ProvaDaTurma = {
+  id: string;
+  autor: string;
+  autorNome: string;
+  materia: string;
+  icone: string;
+  topico: string;
+  /** AAAA-MM-DD */
+  data: string;
+  conteudo: ProvaGerada;
+};
+
+/** Publica a prova (e o que a IA gerou) na turma. Só quem é da turma publica; só o autor apaga. */
+export async function compartilharProva(codigo: string, p: { id: string; materia: string; icone: string; topico: string; data: Date }, conteudo: ProvaGerada) {
+  const s = firebase();
+  const user = s ? await entrar() : null;
+  if (!s || !user) throw new Error('sem nuvem');
+  await setDoc(doc(s.db, 'turmas', codigo, 'provas', p.id), {
+    autor: user.uid,
+    autorNome: nomeDe(app.get()),
+    materia: p.materia,
+    icone: p.icone,
+    topico: p.topico,
+    data: p.data.toISOString().slice(0, 10),
+    conteudo: semDatas(conteudo),
+    criadaEm: serverTimestamp(),
+  });
+}
+
+/** Provas compartilhadas na turma, ao vivo (as mais novas primeiro). */
+export function ouvirProvasDaTurma(codigo: string, cb: (p: ProvaDaTurma[]) => void): Unsubscribe {
+  const s = firebase();
+  if (!s) return () => {};
+  return onSnapshot(
+    collection(s.db, 'turmas', codigo, 'provas'),
+    (snap) =>
+      cb(
+        snap.docs
+          .map((d) => ({ id: d.id, ...(d.data() as Omit<ProvaDaTurma, 'id'>) }))
+          .sort((a, b) => b.data.localeCompare(a.data)),
+      ),
+    () => {},
+  );
+}
+
+export async function tirarProvaDaTurma(codigo: string, provaId: string) {
+  const s = firebase();
+  if (!s) return;
+  await deleteDoc(doc(s.db, 'turmas', codigo, 'provas', provaId));
+}
+
 /** Apaga os dados da pessoa na nuvem e o usuário (conta de e-mail precisa ter reautenticado antes). */
 export async function apagarConta() {
   const s = firebase();
@@ -189,6 +242,13 @@ export async function apagarConta() {
     const conteudos = await getDocs(collection(s.db, 'usuarios', user.uid, 'conteudos'));
     await Promise.all(conteudos.docs.map((d) => deleteDoc(d.ref)));
     await Promise.all(estado.turmas.map((t) => deleteDoc(doc(s.db, 'turmas', t.codigo, 'membros', user.uid)).catch(() => {})));
+    // Provas que a pessoa compartilhou nas turmas saem junto.
+    await Promise.all(
+      estado.turmas.map(async (t) => {
+        const minhas = await getDocs(query(collection(s.db, 'turmas', t.codigo, 'provas'), where('autor', '==', user.uid))).catch(() => null);
+        await Promise.all(minhas?.docs.map((d) => deleteDoc(d.ref).catch(() => {})) ?? []);
+      }),
+    );
     await deleteDoc(doc(s.db, 'usuarios', user.uid));
     await deleteUser(user);
   } catch {

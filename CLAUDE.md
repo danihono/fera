@@ -64,6 +64,10 @@ Peças dessas telas: `Lista` (`Secao`/`Linha`), `Campo`, `Avatar`, `SerieSheet`,
 
 Conta (`src/data/conta.ts`) é opcional e só e-mail/senha: todo mundo começa anônimo; criar conta faz `linkWithCredential` (mesmo uid, nada se perde); entrar numa conta com progresso na nuvem troca o do aparelho (conta vazia herda o do aparelho); sair limpa o aparelho; excluir apaga nuvem + aparelho (+ `apagarMeusDados` nas Functions). Foto de perfil: `src/lib/fotoPerfil.ts` (256 px no estado, 72 px no ranking da turma, sem Storage).
 
+Retenção: lembretes são notificações **locais** (`src/data/lembretes.ts` decide, puro e testado; `src/lib/notificacoes.ts` agenda e reagenda a cada mudança do estado; na web não tem). Missão `reforco` (`src/data/missoes.ts`, `topicosFracos`) volta nos tópicos com ≥ 40% de erro. Provas da turma: `turmas/{codigo}/provas/{id}` (conteúdo junto), `src/data/provasTurma.ts` importa pra lista da pessoa; convite por link `…/turma?codigo=FERA-XXX` (`src/lib/links.ts`).
+
+Fera+: com Functions no ar, a assinatura é `assinaturas/{uid}` (só o servidor escreve; `src/data/assinatura.ts` acompanha). O `premium` do estado só vale como cache da tela.
+
 Arquivos da Nova prova: `src/lib/arquivos.ts` (JS puro, testado em `tests/arquivos.test.ts`) lê imagem, PDF, Word, slides, planilha, ODF, ePub, HTML, RTF, legendas, texto, áudio/vídeo e .zip (inclusive zip dentro de zip); o que vira texto quase não pesa no limite de 14 MB.
 
 Formatos (grátis e Fera+) ficam em `src/data/formatos.tsx`. Grátis escolhe até 2 formatos por prova, Fera+ até 4; o quiz (missões da trilha) sempre vem e não conta.

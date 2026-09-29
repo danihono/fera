@@ -48,6 +48,22 @@ service cloud.firestore {
         && request.resource.data.nome.size() <= 40;
       allow update, delete: if false;
 
+      // Prova compartilhada: quem é da turma publica a que gerou; a sala toda lê; só o autor muda ou apaga.
+      match /provas/{provaId} {
+        allow read: if logado();
+        allow create: if logado()
+          && provaId.matches('^[a-z0-9]{6,40}$')
+          && exists(/databases/$(database)/documents/turmas/$(codigo)/membros/$(request.auth.uid))
+          && request.resource.data.autor == request.auth.uid
+          && request.resource.data.materia is string
+          && request.resource.data.materia.size() <= 40
+          && request.resource.data.conteudo is map;
+        allow update: if logado()
+          && resource.data.autor == request.auth.uid
+          && request.resource.data.autor == request.auth.uid;
+        allow delete: if logado() && resource.data.autor == request.auth.uid;
+      }
+
       match /membros/{uid} {
         allow read: if logado();
         allow delete: if eu(uid);

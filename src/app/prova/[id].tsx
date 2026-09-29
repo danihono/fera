@@ -20,6 +20,7 @@ import { app, diasAte, proximaMissao, useApp } from '@/data/store';
 import { shortDate } from '@/lib/dates';
 import { firebaseLigado } from '@/lib/firebase';
 import { colors, fonts, radius, sizes, space } from '@/theme';
+import { evento } from '@/lib/metricas';
 
 type Desempenho = { nome: string; certas: number; erradas: number };
 
@@ -68,6 +69,7 @@ export default function DetalheDaProva() {
     if (!conteudo) return;
     try {
       await compartilharProva(turma.codigo, prova, conteudo);
+      evento('prova_compartilhada');
       setAviso({ titulo: 'Tá na turma!', texto: `A galera da ${turma.nome} já vê essa prova na aba Turma.`, mood: 'comemorando' });
     } catch {
       setAviso({ titulo: 'Não deu', texto: 'Confere a internet e tenta de novo.', mood: 'pensativo' });

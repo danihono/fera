@@ -14,6 +14,7 @@ import { carregarConteudo, salvarConteudo } from './conteudo';
 import { lerConteudoNuvem, ouvirGeracao } from './nuvem';
 import { anexosDoRascunho, limpar } from './rascunho';
 import { app, diasAte, type ModoIA, type ProvaSalva } from './store';
+import { evento } from '@/lib/metricas';
 
 const QUALIDADE_NO_AR = process.env.EXPO_PUBLIC_IA_QUALIDADE === '1';
 const MODO_FORCADO = process.env.EXPO_PUBLIC_IA_MODO as ModoIA | undefined;
@@ -94,6 +95,7 @@ export async function iniciarGeracao() {
   const s = app.get();
   const r = s.prova;
   const modo = modoIA(s.premium);
+  const comeco = Date.now();
   const id = `p${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
   set({ id, modo, progresso: inicio, erro: null, pronta: false });
 
@@ -132,10 +134,13 @@ export async function iniciarGeracao() {
     // No modo qualidade a Function já gravou o conteúdo na nuvem.
     await salvarConteudo(id, prova, { nuvem: modo !== 'qualidade' });
     app.adicionarProva(salva);
+    evento('prova_gerada', { modo, segundos: Math.round((Date.now() - comeco) / 1000), missoes: prova.missoes.length });
     limpar();
     set({ ...atual!, progresso: { ...atual!.progresso, pct: 100, etapa: 'pronto', texto: 'Trilha pronta!' }, pronta: true });
   } catch (e) {
-    set({ ...atual!, erro: mensagemDe(e) });
+    const erro = mensagemDe(e);
+    evento('prova_falhou', { modo, codigo: erro.codigo });
+    set({ ...atual!, erro });
   }
 }
 

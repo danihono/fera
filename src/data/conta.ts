@@ -21,6 +21,7 @@ import { apagarConteudos, subirConteudos } from './conteudo';
 import { apagarConta, iniciarNuvem, pararSincronia } from './nuvem';
 import { limpar } from './rascunho';
 import { app } from './store';
+import { evento } from '@/lib/metricas';
 
 export type Conta = { uid: string; anonimo: boolean; email: string | null; verificado: boolean; nome: string | null };
 
@@ -142,6 +143,7 @@ export async function criarConta(nome: string, email: string, senha: string) {
     const { user: ligado } = await linkWithCredential(user, EmailAuthProvider.credential(email.trim(), senha));
     await updateProfile(ligado, { displayName: nome.trim() });
     app.setNome(nome.trim());
+    evento('conta_criada');
     sendEmailVerification(ligado).catch(() => {});
     await ligado.reload();
     set(deUsuario(s.auth.currentUser));
@@ -176,6 +178,7 @@ export async function entrarComEmail(email: string, senha: string) {
   // A conta estava vazia e herdou o aparelho: leva junto o conteúdo das provas.
   else await subirConteudos(app.get().provas.map((p) => p.id));
   app.setOnboarded();
+  evento('login', { method: 'email', trouxe: origem ?? 'nada' });
   set(deUsuario(s.auth.currentUser));
 }
 
@@ -277,5 +280,6 @@ export async function excluirConta(senha?: string) {
   await apagarConta();
   // apagarConta faz signOut se o deleteUser falhar; garantimos que não sobra sessão.
   if (s?.auth.currentUser) await signOut(s.auth).catch(() => {});
+  evento('conta_excluida');
   await recomecarNoAparelho();
 }

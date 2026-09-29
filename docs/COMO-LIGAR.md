@@ -120,6 +120,14 @@ Garante que os pedidos vêm do seu app, e não de um script gastando a cota do G
 - **Provas da turma:** quem gerou toca em "Compartilhar com a turma" no detalhe da prova; a sala vê na aba Turma e estuda sem gastar geração. Precisa das regras novas: `firebase deploy --only firestore`.
 - **Convite por link:** "Convidar a turma" manda `https://<projeto>.web.app/turma?codigo=FERA-XXX`. Pra usar outro domínio: `EXPO_PUBLIC_SITE_URL=https://seu-site` no `.env`.
 
+## Métricas e erros
+
+- **Google Analytics** (web): com `EXPO_PUBLIC_FIREBASE_MEASUREMENT_ID` no `.env` (já está), o site manda os eventos do funil: `onboarding_fim`, `conteudo_enviado`, `prova_gerada` / `prova_falhou`, `missao_fim`, `conta_criada`, `login`, `premium_visto` / `premium_assinado`, `turma_criada` / `turma_entrou`, `prova_compartilhada`, `prova_da_turma_estudada`, `lembrete_permissao`, `questao_reportada` e `erro_js`. Veja em Firebase → **Analytics → Eventos** (ou **DebugView** com a extensão "Google Analytics Debugger"). Monte o funil em Analytics → Explorar → Exploração de funil: onboarding_fim → conteudo_enviado → prova_gerada → missao_fim.
+- A pessoa desliga em Configurações → Estatísticas de uso. Nos emuladores não coleta nada.
+- **Celular:** no build das lojas, `@react-native-firebase/analytics` com os mesmos nomes (em `src/lib/metricas.ts`).
+- **Erros das Functions** aparecem sozinhos no Google Cloud → **Error Reporting**.
+- **Questões reportadas:** Firestore → coleção `reportes` (motivo + a questão). Vale olhar toda semana: é o termômetro da qualidade da IA.
+
 ## 3. Testar tudo no computador (emuladores, sem conta nenhuma)
 
 Precisa de Java instalado. O projeto `demo-fera` só existe nos emuladores e usa a IA de mentira (`functions/.env.demo-fera`).

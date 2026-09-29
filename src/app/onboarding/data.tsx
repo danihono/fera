@@ -11,6 +11,7 @@ import { TapScale } from '@/components/TapScale';
 import { app } from '@/data/store';
 import { goHome } from '@/lib/nav';
 import { colors, fonts, radius, sizes, solidShadow, space, type } from '@/theme';
+import { evento } from '@/lib/metricas';
 
 const WEEKDAYS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
@@ -80,6 +81,7 @@ export default function OnboardingData() {
 
   // A trilha sai do conteúdo da prova: depois da data, vai direto pro "Manda o conteúdo" (04), por cima da Início.
   const finish = () => {
+    evento('onboarding_fim', { via: 'trilha', dias: daysLeft, minutos: minutes });
     app.setProva({ data: selected, minutosDia: minutes });
     app.setOnboarded();
     goHome();

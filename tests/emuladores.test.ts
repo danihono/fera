@@ -4,7 +4,7 @@ import { assertFails, assertSucceeds, initializeTestEnvironment, type RulesTestE
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { after, before, test } from 'node:test';
-import { deleteDoc, doc, getDoc, setDoc } from 'firebase/firestore';
+import { addDoc, collection, deleteDoc, doc, getDoc, getDocs, setDoc } from 'firebase/firestore';
 
 const PROJETO = 'demo-fera';
 const HOST = '127.0.0.1';
@@ -140,6 +140,16 @@ test('regras: provas da turma (membro publica, todo mundo lê, só o autor apaga
   await assertFails(deleteDoc(doc(ana, 'turmas/FERA-P2V/provas/pabc123')));
   await assertFails(setDoc(doc(ana, 'turmas/FERA-P2V/provas/pabc123'), { ...prova, autor: 'ana' }));
   await assertSucceeds(deleteDoc(doc(bia, 'turmas/FERA-P2V/provas/pabc123')));
+});
+
+test('regras: reporte de questão (só cria, com o próprio uid e motivo da lista)', async () => {
+  const bia = env.authenticatedContext('bia').firestore();
+  const ok = { uid: 'bia', provaId: 'p1', questao: '{"enunciado":"2+2"}', motivo: 'A resposta certa tá errada', criadoEm: 1 };
+  await assertSucceeds(addDoc(collection(bia, 'reportes'), ok));
+  await assertFails(addDoc(collection(bia, 'reportes'), { ...ok, uid: 'ana' }));
+  await assertFails(addDoc(collection(bia, 'reportes'), { ...ok, motivo: 'qualquer coisa' }));
+  await assertFails(addDoc(collection(bia, 'reportes'), { ...ok, questao: 'x'.repeat(7000) }));
+  await assertFails(getDocs(collection(bia, 'reportes')));
 });
 
 test('regras: assinatura e uso do projeto só o servidor escreve', async () => {

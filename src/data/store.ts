@@ -67,6 +67,8 @@ export type AppState = {
   /** Já perguntamos se pode mandar notificação (uma vez, depois da 1ª missão). */
   pediuNotificacao: boolean;
   sons: boolean;
+  /** Estatísticas anônimas de uso (dá pra desligar nas Configurações). */
+  metricas: boolean;
   /** Conquistas que dependem de um momento (zero erros, madrugador, relâmpago, simulado, top 3). */
   marcos: string[];
   /** Última mudança (pra decidir entre aparelho e nuvem). */
@@ -144,6 +146,7 @@ const inicial = (): AppState => ({
   lembreteHora: '19:00',
   pediuNotificacao: false,
   sons: true,
+  metricas: true,
   marcos: [],
   atualizadoEm: 0,
 });
@@ -274,6 +277,7 @@ export const app = {
   setLembreteHora: (lembreteHora: string) => set({ lembreteHora }),
   marcarPedidoNotificacao: () => set({ pediuNotificacao: true }),
   setSons: (sons: boolean) => set({ sons }),
+  setMetricas: (metricas: boolean) => set({ metricas }),
 };
 
 export function useApp() {

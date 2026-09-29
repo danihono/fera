@@ -5,6 +5,7 @@ import { salvarConteudo } from './conteudo';
 import { modoIA } from './geracao';
 import type { ProvaDaTurma } from './nuvem';
 import { app, type ProvaSalva } from './store';
+import { evento } from '@/lib/metricas';
 
 export const origemDe = (codigo: string, provaId: string) => `${codigo}/${provaId}`;
 
@@ -37,4 +38,5 @@ export async function estudarProvaDaTurma(codigo: string, p: ProvaDaTurma) {
   };
   await salvarConteudo(id, p.conteudo);
   app.adicionarProva(salva);
+  evento('prova_da_turma_estudada');
 }

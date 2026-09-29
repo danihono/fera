@@ -33,6 +33,17 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    // Questão reportada pelo aluno: só cria (quem lê é você, no console).
+    match /reportes/{id} {
+      allow create: if logado()
+        && request.resource.data.keys().hasOnly(['uid', 'provaId', 'questao', 'motivo', 'criadoEm'])
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.questao is string
+        && request.resource.data.questao.size() <= 6000
+        && request.resource.data.motivo in ['A resposta certa tá errada', 'O enunciado tá confuso', 'Isso não era da matéria', 'Outro problema'];
+      allow read, update, delete: if false;
+    }
+
     // Uso do projeto (teto diário de gerações): só o servidor.
     match /sistema/{doc} {
       allow read, write: if false;

@@ -18,6 +18,7 @@ import { Rugi } from '@/components/Rugi';
 import { contasDisponiveis } from '@/data/conta';
 import { app } from '@/data/store';
 import { colors, fonts, radius, sizes, space } from '@/theme';
+import { evento } from '@/lib/metricas';
 
 /** Palco do Rugi no design (300 × 330) + balão (~100) + espaço entre eles (18). */
 const STAGE_H = 330;
@@ -30,6 +31,7 @@ export default function OnboardingRugi() {
   const escala = alturaCentro ? Math.max(0.6, Math.min(1, (alturaCentro - BUBBLE_E_GAP) / STAGE_H)) : 1;
   // "Pular" conta como onboarding feito. "Já tenho conta" abre o Entrar (sem Firebase, pula como antes).
   const skip = () => {
+    evento('onboarding_fim', { via: 'pular' });
     app.setOnboarded();
     router.replace('/(tabs)');
   };

@@ -1,6 +1,6 @@
 // 13 · Fera+ (assinatura) — canvas artboard Premium.dc.html
 import { router } from 'expo-router';
-import { useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated, { useAnimatedStyle, type SharedValue } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -13,6 +13,7 @@ import { TapScale } from '@/components/TapScale';
 import { Rolavel } from '@/components/Rolavel';
 import { assinar, cancelarAssinatura, restaurarCompra } from '@/data/assinatura';
 import { useApp } from '@/data/store';
+import { evento } from '@/lib/metricas';
 import { pingPong, useLoop } from '@/lib/anim';
 import { colors, fonts, radius, sizes, solidShadow, space } from '@/theme';
 
@@ -35,13 +36,17 @@ export default function Premium() {
   const { premium } = useApp();
   const [sheet, setSheet] = useState<null | 'comprou' | 'restaurar' | 'gerenciar' | 'cancelar'>(null);
   const [ocupado, setOcupado] = useState(false);
+  useEffect(() => evento('premium_visto'), []);
   const [erro, setErro] = useState<string | null>(null);
 
   // Com as Functions no ar, o servidor ativa (e o app só acompanha); sem elas, é simulado no aparelho.
   const comprar = () => {
     setOcupado(true);
     assinar(plan)
-      .then(() => setSheet('comprou'))
+      .then(() => {
+        evento('premium_assinado', { plano: plan });
+        setSheet('comprou');
+      })
       .catch((e: Error) => setErro(e.message))
       .finally(() => setOcupado(false));
   };

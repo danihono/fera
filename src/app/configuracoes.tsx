@@ -6,6 +6,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   BellIcon,
+  ChartIcon,
   CrownIcon,
   FileIcon,
   FireIcon,
@@ -27,6 +28,7 @@ import { Toggle } from '@/components/Toggle';
 import { contasDisponiveis, excluirConta, sair as sairDaConta, traduzir, useConta } from '@/data/conta';
 import { DESCRICAO_MODO, modoIA } from '@/data/geracao';
 import { app, useApp } from '@/data/store';
+import { aplicarConsentimento } from '@/lib/metricas';
 import { notificacoesDisponiveis, permitirNotificacoes } from '@/lib/notificacoes';
 import { colors, fonts, sizes, space } from '@/theme';
 
@@ -52,7 +54,7 @@ const irProComeco = () => {
 
 export default function Configuracoes() {
   const insets = useSafeAreaInsets();
-  const { prova, lembrete, lembreteHora, sons, premium, serie, provaAtual } = useApp();
+  const { prova, lembrete, lembreteHora, sons, metricas, premium, serie, provaAtual } = useApp();
   const conta = useConta();
   const comEmail = !!conta && !conta.anonimo;
   const [escolhendoSerie, setEscolhendoSerie] = useState(false);
@@ -151,6 +153,21 @@ export default function Configuracoes() {
       </Secao>
 
       <Secao titulo="AJUDA">
+        <Linha
+          icone={<ChartIcon />}
+          rotulo="Estatísticas de uso"
+          sub="Anônimas: ajudam a melhorar o Fera"
+          direita={
+            <Toggle
+              label="Estatísticas de uso"
+              value={metricas}
+              onChange={(v) => {
+                app.setMetricas(v);
+                aplicarConsentimento(v);
+              }}
+            />
+          }
+        />
         <Linha icone={<HelpIcon />} rotulo="Central de ajuda" sub="Perguntas frequentes e contato" onPress={() => router.push('/ajuda')} />
         <Linha icone={<FileIcon size={22} />} rotulo="Termos de uso" onPress={() => router.push('/legal/termos')} />
         <Linha icone={<ShieldIcon />} rotulo="Política de privacidade" onPress={() => router.push('/legal/privacidade')} />

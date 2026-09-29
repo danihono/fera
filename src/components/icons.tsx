@@ -687,3 +687,11 @@ export function CalendarEditIcon({ size = 22, color = colors.red }: StrokeIconPr
     </Svg>
   );
 }
+
+export function FlagIcon({ size = 16, color = colors.textMuted }: StrokeIconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" {...stroke(color)}>
+      <Path d="M5.5 21V4.5M5.5 4.5h11l-2 4 2 4h-11" />
+    </Svg>
+  );
+}

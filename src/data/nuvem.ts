@@ -7,7 +7,7 @@
 // turmas/{codigo}                   nome da turma
 // turmas/{codigo}/membros/{uid}     nome e XP de cada um (ranking)
 import { deleteUser, signOut } from 'firebase/auth';
-import { collection, deleteDoc, doc, getDoc, getDocs, onSnapshot, query, serverTimestamp, setDoc, where, type Unsubscribe } from 'firebase/firestore';
+import { addDoc, collection, deleteDoc, doc, getDoc, getDocs, onSnapshot, query, serverTimestamp, setDoc, where, type Unsubscribe } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
 import type { Progresso, ProvaGerada } from '@/ia/tipos';
 import { entrar, firebase, usuarioAtual } from '@/lib/firebase';
@@ -174,6 +174,24 @@ export function ouvirRanking(codigo: string, cb: (m: Membro[]) => void): Unsubsc
       ),
     () => {},
   );
+}
+
+// ——— Reporte de questão (a IA errou?) ———
+
+export const MOTIVOS_REPORTE = ['A resposta certa tá errada', 'O enunciado tá confuso', 'Isso não era da matéria', 'Outro problema'] as const;
+
+/** Guarda a questão reportada pra conferir e melhorar os prompts. Sem Firebase, não vai pra lugar nenhum. */
+export async function reportarQuestao(provaId: string | null, questao: unknown, motivo: (typeof MOTIVOS_REPORTE)[number]) {
+  const s = firebase();
+  const user = s ? await entrar() : null;
+  if (!s || !user) return;
+  await addDoc(collection(s.db, 'reportes'), {
+    uid: user.uid,
+    provaId: provaId ?? '',
+    questao: JSON.stringify(questao).slice(0, 6000),
+    motivo,
+    criadoEm: serverTimestamp(),
+  });
 }
 
 // ——— Provas da turma: gera uma vez, a sala toda estuda (sem gastar outra geração) ———

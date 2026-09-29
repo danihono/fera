@@ -7,6 +7,7 @@ import { Platform } from 'react-native';
 import { planejarLembretes } from '@/data/lembretes';
 import { app, diasAte } from '@/data/store';
 import { colors } from '@/theme';
+import { evento } from './metricas';
 
 export const notificacoesDisponiveis = true;
 
@@ -30,7 +31,9 @@ export async function permitirNotificacoes(pedir: boolean): Promise<boolean> {
   const atual = await Notifications.getPermissionsAsync();
   if (atual.granted) return true;
   if (!pedir || !atual.canAskAgain) return false;
-  return (await Notifications.requestPermissionsAsync()).granted;
+  const ok = (await Notifications.requestPermissionsAsync()).granted;
+  evento('lembrete_permissao', { ok });
+  return ok;
 }
 
 let rodando = false;

@@ -98,6 +98,8 @@ export const LEGAL: Record<'termos' | 'privacidade', DocLegal> = {
           'Perfil: nome ou apelido, foto de perfil (se você puser) e ano escolar.',
           'Estudo: provas, matérias, datas, respostas, acertos e erros, XP, sequência, conquistas e turmas.',
           'Conteúdo enviado: fotos, arquivos, áudios e textos que você manda pra montar a prova, e o que a IA gerou a partir deles.',
+          'Uso do app: eventos anônimos como "terminou uma missão" ou "gerou uma prova" (Google Analytics, sem o conteúdo das provas). Dá pra desligar em Configurações → Estatísticas de uso.',
+          'Questões que você reporta como erradas, pra gente conferir e melhorar a IA.',
           'Não pedimos localização, contatos nem documentos, e não vendemos seus dados.',
         ],
       },
@@ -113,6 +115,7 @@ export const LEGAL: Record<'termos' | 'privacidade', DocLegal> = {
         paragrafos: [
           'Pra gerar os materiais, o conteúdo que você manda é processado por provedores de IA: Google (Gemini), Anthropic (Claude) e OpenAI (ilustrações). Eles recebem só o necessário pra gerar o material e, nos planos de API que usamos, não usam esse conteúdo pra treinar seus modelos.',
           'Os dados ficam no Google Firebase (autenticação, banco de dados e servidores). Alguns desses parceiros ficam fora do Brasil; a transferência internacional segue o art. 33 da LGPD, com cláusulas contratuais de proteção.',
+          'Estatísticas de uso vão pro Google Analytics, sem nome, e-mail ou conteúdo das provas.',
           'Pagamentos do Fera+ são feitos pela Apple ou pelo Google; não recebemos dados do seu cartão.',
         ],
       },

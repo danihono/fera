@@ -1,9 +1,10 @@
 // 06 · Missão (Quiz, Lacuna, VF) + 07 · feedback (Acerto / Erro)
 import { router, useLocalSearchParams } from 'expo-router';
 import { useMemo, useRef, useState } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FeraButton } from '@/components/FeraButton';
+import { FlagIcon } from '@/components/icons';
 import { InfoSheet } from '@/components/InfoSheet';
 import { FeedbackSheet } from '@/components/missao/FeedbackSheet';
 import { LacunaQuestion } from '@/components/missao/LacunaQuestion';
@@ -11,12 +12,15 @@ import { MissionHeader } from '@/components/missao/MissionHeader';
 import { QuizQuestion } from '@/components/missao/QuizQuestion';
 import type { Result } from '@/components/missao/types';
 import { VFQuestion } from '@/components/missao/VFQuestion';
+import { OpcoesSheet } from '@/components/SerieSheet';
 import { useConteudo } from '@/data/conteudo';
 import { TAGS, XP_BONUS_MISSAO, XP_POR_ACERTO, type Question } from '@/data/missao';
 import { montarMissao } from '@/data/missoes';
+import { MOTIVOS_REPORTE, reportarQuestao } from '@/data/nuvem';
 import { app, provaAtualDe, useApp, VIDAS } from '@/data/store';
 import { vibrar } from '@/lib/haptics';
 import { colors, fonts, radius, sizes, space } from '@/theme';
+import { evento } from '@/lib/metricas';
 
 type Answer = number | boolean | (number | null)[] | null;
 
@@ -69,6 +73,8 @@ function Jogo({ id, missao, premium, provaId }: { id: string; missao: NonNullabl
   const [erros, setErros] = useState<Record<string, number>>({});
   const [certosTopico, setCertosTopico] = useState<Record<string, number>>({});
   const [semVidas, setSemVidas] = useState(false);
+  const [reportando, setReportando] = useState(false);
+  const [reportado, setReportado] = useState(false);
   const tentarDeNovo = useRef(false);
   // A questão rola só se não couber na tela (celular pequeno); no tamanho do design ela fica parada.
   const [caixa, setCaixa] = useState(0);
@@ -112,6 +118,7 @@ function Jogo({ id, missao, premium, provaId }: { id: string; missao: NonNullabl
     const xp = acertos * XP_POR_ACERTO + XP_BONUS_MISSAO;
     app.concluirMissao({ provaId, numero: missao.numero, tipo: missao.numero != null ? 'trilha' : (id as 'teste' | 'simulado' | 'revisao' | 'reforco'), xp, acertos, respondidas: total, errosPorTopico: erros, acertosPorTopico: certosTopico });
     vibrar('fim');
+    evento('missao_fim', { tipo: missao.numero != null ? 'trilha' : id, precisao: Math.round((acertos / total) * 100) });
     router.replace({
       pathname: '/missao/fim',
       params: { id, xp: String(xp), precisao: String(Math.round((acertos / total) * 100)), subtitulo: missao.subtitulo },
@@ -132,8 +139,17 @@ function Jogo({ id, missao, premium, provaId }: { id: string; missao: NonNullabl
         onContentSizeChange={(_, h) => setConteudoAltura(h)}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.tag}>
-          <Text style={styles.tagText}>{TAGS[q.kind]}</Text>
+        <View style={styles.tagRow}>
+          <View style={styles.tag}>
+            <Text style={styles.tagText}>{TAGS[q.kind]}</Text>
+          </View>
+          {/* Fora do design: depois de verificar, dá pra avisar que a IA errou a questão. */}
+          {result && (
+            <Pressable accessibilityRole="button" onPress={() => setReportando(true)} hitSlop={8} style={styles.reportar}>
+              <FlagIcon size={15} />
+              <Text style={styles.reportarTexto}>Reportar</Text>
+            </Pressable>
+          )}
         </View>
 
         {/* Chaves únicas entre irmãos: a questão e a sheet mudam juntas a cada índice. */}
@@ -148,6 +164,24 @@ function Jogo({ id, missao, premium, provaId }: { id: string; missao: NonNullabl
       <FeraButton label="Verificar" disabled={!isAnswered(q, answer)} onPress={verificar} />
 
       {result && <FeedbackSheet key={`feedback-${index}`} correct={result === 'correct'} feedback={q} xp={XP_POR_ACERTO} onContinue={continuar} />}
+
+      {reportando && (
+        <OpcoesSheet
+          titulo="O que tem de errado?"
+          opcoes={MOTIVOS_REPORTE}
+          valor=""
+          onEscolher={(m) => {
+            const motivo = m as (typeof MOTIVOS_REPORTE)[number];
+            evento('questao_reportada', { motivo });
+            reportarQuestao(provaId, q, motivo).catch(() => {});
+            setReportado(true);
+          }}
+          onClose={() => setReportando(false)}
+        />
+      )}
+      {reportado && (
+        <InfoSheet mood="comemorando" title="Valeu pelo toque!" text="A gente vai conferir essa questão. Isso ajuda o Rugi a errar menos." button="Beleza" onClose={() => setReportado(false)} />
+      )}
 
       {semVidas && (
         <InfoSheet
@@ -171,6 +205,9 @@ function Jogo({ id, missao, premium, provaId }: { id: string; missao: NonNullabl
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.white, paddingHorizontal: space.gutter },
-  tag: { alignSelf: 'flex-start', marginTop: 22, height: 28, paddingHorizontal: 12, borderRadius: radius.pill, backgroundColor: colors.redSoft, justifyContent: 'center' },
+  tagRow: { marginTop: 22, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  reportar: { height: 28, flexDirection: 'row', alignItems: 'center', gap: 4 },
+  reportarTexto: { fontFamily: fonts.nunito800, fontSize: 13, color: colors.textMuted },
+  tag: { alignSelf: 'flex-start', height: 28, paddingHorizontal: 12, borderRadius: radius.pill, backgroundColor: colors.redSoft, justifyContent: 'center' },
   tagText: { fontFamily: fonts.nunito900, fontSize: 12, letterSpacing: 1, color: colors.redText },
 });

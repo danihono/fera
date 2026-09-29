@@ -42,6 +42,7 @@ import {
 } from '@/data/rascunho';
 import type { Categoria } from '@/lib/arquivos';
 import { colors, fonts, radius, sizes, space, type } from '@/theme';
+import { evento } from '@/lib/metricas';
 
 const ROTULO: Record<Categoria, string> = {
   imagem: 'Foto',
@@ -272,7 +273,17 @@ export default function Conteudo() {
         </View>
       </ScrollView>
 
-      <FeraButton label="Continuar" disabled={itens.length === 0 || !!lendo} onPress={() => router.push('/prova/formatos')} />
+      <FeraButton label="Continuar" disabled={itens.length === 0 || !!lendo} onPress={() => {
+          evento('conteudo_enviado', {
+            itens: itens.length,
+            fotos: itens.filter((i) => i.tipo === 'foto').length,
+            pdfs: itens.filter((i) => i.tipo === 'pdf').length,
+            midias: itens.filter((i) => i.tipo === 'midia').length,
+            textos: itens.filter((i) => i.tipo === 'texto').length,
+          });
+          router.push('/prova/formatos');
+        }}
+      />
 
       {arrastando && (
         <View style={styles.soltar} pointerEvents="none">

@@ -20,6 +20,7 @@ import { firebaseLigado, usuarioAtual } from '@/lib/firebase';
 import { shortDate } from '@/lib/dates';
 import { linkDaTurma } from '@/lib/links';
 import { colors, fonts, radius, sizes, solidShadow, space, type } from '@/theme';
+import { evento } from '@/lib/metricas';
 
 const fmt = (n: number) => n.toLocaleString('pt-BR');
 const riseEasing = Easing.bezier(0.2, 0.9, 0.3, 1.1);
@@ -82,8 +83,10 @@ export default function Turma() {
     const c = codigo.trim().toUpperCase();
     if (!nuvem) return app.entrarNaTurma({ codigo: c, nome: `Turma ${c}` });
     const t = await entrarNaTurmaNuvem(c).catch(() => null);
-    if (t) app.entrarNaTurma(t);
-    else setAviso(`Não achei a turma ${c}. Confere o código com quem te chamou.`);
+    if (t) {
+      app.entrarNaTurma(t);
+      evento('turma_entrou', { via: convitePendente || conviteAberto ? 'link' : 'codigo' });
+    } else setAviso(`Não achei a turma ${c}. Confere o código com quem te chamou.`);
   };
   // Convite por link (…/turma?codigo=FERA-72K): pergunta se quer entrar.
   const { codigo: convite } = useLocalSearchParams<{ codigo?: string }>();
@@ -102,7 +105,10 @@ export default function Turma() {
 
   const criar = async (nome: string) => {
     const t = await criarTurma(nome).catch(() => null);
-    if (t) app.entrarNaTurma(t);
+    if (t) {
+      app.entrarNaTurma(t);
+      evento('turma_criada');
+    }
     else setAviso('Não deu pra criar a turma agora. Confere a internet e tenta de novo.');
   };
 

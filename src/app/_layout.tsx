@@ -14,6 +14,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { SemInternet } from '@/components/SemInternet';
+import { aplicarConsentimento, capturarErros } from '@/lib/metricas';
 import { iniciarLembretes, useAbrirPelaNotificacao } from '@/lib/notificacoes';
 import { iniciarNuvem } from '@/data/nuvem';
 import { app } from '@/data/store';
@@ -43,6 +44,8 @@ export default function RootLayout() {
       iniciarNuvem().catch(() => {});
       // Lembretes locais: reagenda sempre que o estado muda.
       pararLembretes = iniciarLembretes();
+      capturarErros();
+      aplicarConsentimento(app.get().metricas);
     });
     return () => pararLembretes?.();
   }, []);

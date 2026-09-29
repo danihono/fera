@@ -1,5 +1,5 @@
 // Turma de exemplo (a do design), usada no modo demonstração, sem Firebase.
-export type Colega = { nome: string; inicial: string; xp: number };
+export type Colega = { nome: string; inicial: string; xp: number; foto?: string | null };
 
 // Ranking da turma até a prova (Turma · 10). O índice 3 é você.
 export const mockTurma = {

@@ -2,7 +2,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useEffect, useSyncExternalStore } from 'react';
 import type { ProvaGerada } from '@/ia/tipos';
-import { lerConteudoNuvem, salvarConteudoNuvem } from './nuvem';
+import { apagarConteudoNuvem, lerConteudoNuvem, salvarConteudoNuvem } from './nuvem';
 
 const chave = (id: string) => `fera:conteudo:${id}`;
 const cache = new Map<string, ProvaGerada | null>();
@@ -39,11 +39,32 @@ export async function carregarConteudo(id: string): Promise<ProvaGerada | null> 
 
 export const conteudoEmMemoria = (id: string | null) => (id ? (cache.get(id) ?? null) : null);
 
+/** Apaga do aparelho o conteúdo de todas as provas (inclusive as que nem foram abertas nesta sessão). */
 export async function apagarConteudos() {
-  const ids = [...cache.keys()];
   cache.clear();
   emit();
-  await AsyncStorage.multiRemove(ids.map(chave)).catch(() => {});
+  try {
+    const chaves = (await AsyncStorage.getAllKeys()).filter((k) => k.startsWith(chave('')));
+    await AsyncStorage.multiRemove(chaves);
+  } catch {
+    // nada salvo
+  }
+}
+
+/** Apaga o conteúdo de uma prova (aparelho e nuvem). */
+export async function apagarConteudo(id: string) {
+  cache.delete(id);
+  emit();
+  await AsyncStorage.removeItem(chave(id)).catch(() => {});
+  await apagarConteudoNuvem(id).catch(() => {});
+}
+
+/** Manda pra nuvem da conta de agora o conteúdo que só existe no aparelho (ao entrar numa conta vazia). */
+export async function subirConteudos(ids: string[]) {
+  for (const id of ids) {
+    const c = await carregarConteudo(id);
+    if (c) await salvarConteudoNuvem(id, c).catch(() => {});
+  }
 }
 
 /** Conteúdo da prova (carrega do aparelho ou da nuvem na primeira vez). */

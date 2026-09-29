@@ -3,11 +3,13 @@ import { router } from 'expo-router';
 import { useState, type ReactNode } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { BoltIcon, ExamsFilledIcon, FireIcon, GearIcon } from '@/components/icons';
+import { Avatar } from '@/components/Avatar';
+import { BoltIcon, ChevronRightIcon, ExamsFilledIcon, FireIcon, GearIcon, ShieldIcon } from '@/components/icons';
 import { InfoSheet } from '@/components/InfoSheet';
 import { MedalGrid } from '@/components/Medal';
 import { ProgressBar } from '@/components/ProgressBar';
 import { conquistasDe, type Conquista } from '@/data/conquistas';
+import { contasDisponiveis, useConta } from '@/data/conta';
 import { diasAte, nivelDe, nomeDe, streakAtual, useApp, XP_POR_NIVEL } from '@/data/store';
 import { colors, fonts, radius, sizes, solidShadow, space, type } from '@/theme';
 
@@ -23,6 +25,7 @@ export default function Perfil() {
   const usuario = `@${nome.toLocaleLowerCase('pt-BR').normalize('NFD').replace(/[^a-z0-9]+/g, '.').replace(/^\.|\.$/g, '') || 'fera'}`;
   const provasFeitas = provas.filter((p) => diasAte(p.data) < 0).length;
   const [medalha, setMedalha] = useState<Conquista | null>(null);
+  const conta = useConta();
 
   return (
     <ScrollView
@@ -50,14 +53,12 @@ export default function Perfil() {
       </View>
 
       <View style={styles.identity}>
-        <View>
-          <View style={styles.avatar}>
-            <Text style={styles.avatarText}>{nome.charAt(0).toUpperCase()}</Text>
-          </View>
+        <Pressable accessibilityRole="button" accessibilityLabel="Minha conta" onPress={() => router.push('/conta')}>
+          <Avatar foto={estado.foto} inicial={nome.charAt(0).toUpperCase()} style={styles.avatar} textStyle={styles.avatarText} />
           <View style={styles.levelBadge}>
             <Text style={styles.levelBadgeText}>{n.nivel}</Text>
           </View>
-        </View>
+        </Pressable>
         <View style={styles.identityTexts}>
           <Text style={styles.name}>{nome}</Text>
           <Text style={styles.handle} numberOfLines={1}>
@@ -96,6 +97,24 @@ export default function Perfil() {
       <View style={styles.medals}>
         <MedalGrid items={conquistasDe(estado).slice(0, 8)} onPress={setMedalha} />
       </View>
+
+      {/* Fora do design: sem conta, convida a criar (embaixo, pra não mexer no resto da tela). */}
+      {contasDisponiveis && conta?.anonimo && (
+        <Pressable
+          accessibilityRole="button"
+          onPress={() => router.push('/conta/criar')}
+          style={({ pressed }) => [styles.salvar, { boxShadow: pressed ? 'none' : solidShadow(colors.border), transform: [{ translateY: pressed ? sizes.shadow : 0 }] }]}
+        >
+          <View style={styles.salvarIcone}>
+            <ShieldIcon />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.salvarTitulo}>Salva seu progresso</Text>
+            <Text style={styles.salvarTexto}>Cria uma conta pra não perder nada se trocar de celular.</Text>
+          </View>
+          <ChevronRightIcon size={18} strokeWidth={2.8} color={colors.iconMuted} />
+        </Pressable>
+      )}
 
       {medalha && (
         <InfoSheet
@@ -190,4 +209,21 @@ const styles = StyleSheet.create({
   seeAll: { minHeight: 44, justifyContent: 'center' },
   seeAllText: { fontFamily: fonts.nunito800, fontSize: 15, color: colors.redText },
   medals: { marginTop: 4 },
+  salvar: {
+    marginTop: 18,
+    marginBottom: sizes.shadow,
+    minHeight: 76,
+    borderRadius: radius.option,
+    borderWidth: sizes.borderWidth,
+    borderColor: colors.border,
+    backgroundColor: colors.white,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+  },
+  salvarIcone: { width: 44, height: 44, borderRadius: 14, backgroundColor: colors.redSoft, alignItems: 'center', justifyContent: 'center' },
+  salvarTitulo: { fontFamily: fonts.nunito800, fontSize: 16, color: colors.text },
+  salvarTexto: { fontFamily: fonts.nunito700, fontSize: 13, lineHeight: 18, color: colors.textMuted },
 });

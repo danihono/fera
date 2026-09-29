@@ -4,15 +4,16 @@ import { useEffect, useState } from 'react';
 import { Pressable, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withDelay, withTiming } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Avatar } from '@/components/Avatar';
 import { BottomSheet } from '@/components/BottomSheet';
 import { FeraButton } from '@/components/FeraButton';
 import { CheckIcon, ChevronDownIcon, CopyIcon, CrownIcon, ShareIcon } from '@/components/icons';
 import { InfoSheet } from '@/components/InfoSheet';
 import { TextInputSheet } from '@/components/TextInputSheet';
-import { StatPill } from '@/components/StatPill';
+import { Pilulas } from '@/components/Pilulas';
 import { mockTurma, type Colega } from '@/data/mock';
 import { criarTurma, entrarNaTurmaNuvem, ouvirRanking, type Membro } from '@/data/nuvem';
-import { app, nomeDe, streakAtual, useApp, VIDAS } from '@/data/store';
+import { app, nomeDe, useApp } from '@/data/store';
 import { firebaseLigado, usuarioAtual } from '@/lib/firebase';
 import { shortDate } from '@/lib/dates';
 import { colors, fonts, radius, sizes, solidShadow, space, type } from '@/theme';
@@ -33,7 +34,7 @@ const TURMA_EXEMPLO = { codigo: mockTurma.codigo, nome: mockTurma.nome };
 export default function Turma() {
   const insets = useSafeAreaInsets();
   const estado = useApp();
-  const { prova, xp, turmas, premium } = estado;
+  const { prova, xp, turmas } = estado;
   const [sheet, setSheet] = useState<null | 'turmas' | 'codigo' | 'criar' | 'copiado' | 'nome'>(null);
   // Na turma o nome aparece pros colegas: sem nome ainda, pergunta antes de criar/entrar.
   const [depoisDoNome, setDepoisDoNome] = useState<'codigo' | 'criar' | null>(null);
@@ -60,9 +61,12 @@ export default function Turma() {
   const membros = ao && ao.codigo === codigo ? ao.membros : null;
 
   const minhaInicial = nomeDe(estado).charAt(0).toUpperCase();
+  const minhaFoto = estado.fotoMini;
   const ranking: (Colega & { voce: boolean })[] = nuvem
-    ? (membros ?? []).map((m) => ({ nome: m.uid === eu ? 'Você' : m.nome, inicial: m.inicial, xp: m.uid === eu ? xp : m.xp, voce: m.uid === eu }))
-    : [...mockTurma.ranking.filter((_, i) => i !== mockTurma.voce).map((c) => ({ ...c, voce: false })), { nome: 'Você', inicial: minhaInicial, xp, voce: true }];
+    ? (membros ?? []).map((m) =>
+        m.uid === eu ? { nome: 'Você', inicial: minhaInicial, xp, foto: minhaFoto, voce: true } : { nome: m.nome, inicial: m.inicial, xp: m.xp, foto: m.foto, voce: false },
+      )
+    : [...mockTurma.ranking.filter((_, i) => i !== mockTurma.voce).map((c) => ({ ...c, voce: false })), { nome: 'Você', inicial: minhaInicial, xp, foto: minhaFoto, voce: true }];
   ranking.sort((a, b) => b.xp - a.xp);
   const podio = ranking.length >= 3;
   const minhaPosicao = ranking.findIndex((c) => c.voce);
@@ -90,11 +94,7 @@ export default function Turma() {
       contentContainerStyle={[styles.content, { paddingTop: insets.top + sizes.topExtra }]}
       showsVerticalScrollIndicator={false}
     >
-      <View style={styles.stats}>
-        <StatPill kind="streak" value={streakAtual(estado)} />
-        <StatPill kind="xp" value={xp} />
-        <StatPill kind="lives" value={premium ? '∞' : VIDAS} />
-      </View>
+      <Pilulas />
 
       <View style={styles.titleRow}>
         <Text style={styles.title}>Turma</Text>
@@ -133,9 +133,7 @@ export default function Turma() {
                 return c.voce ? (
                   <View key={`${c.nome}-${i}`} style={[styles.row, styles.rowMe]} accessibilityState={{ selected: true }}>
                     <Text style={[styles.rank, { fontFamily: fonts.fredoka700, color: colors.redText }]}>{pos}</Text>
-                    <View style={[styles.rowAvatar, { backgroundColor: colors.red }]}>
-                      <Text style={[styles.rowAvatarText, { color: colors.white }]}>{minhaInicial}</Text>
-                    </View>
+                    <Avatar foto={c.foto} inicial={minhaInicial} style={[styles.rowAvatar, { backgroundColor: colors.red }]} textStyle={[styles.rowAvatarText, { color: colors.white }]} />
                     <View style={{ flex: 1 }}>
                       <Text style={styles.meName}>Você</Text>
                     </View>
@@ -144,9 +142,12 @@ export default function Turma() {
                 ) : (
                   <View key={`${c.nome}-${i}`} style={styles.row}>
                     <Text style={styles.rank}>{pos}</Text>
-                    <View style={[styles.rowAvatar, i % 2 === 0 ? { backgroundColor: colors.redSoft } : styles.rowAvatarPlain]}>
-                      <Text style={[styles.rowAvatarText, i % 2 === 0 && { color: colors.redText }]}>{c.inicial}</Text>
-                    </View>
+                    <Avatar
+                      foto={c.foto}
+                      inicial={c.inicial}
+                      style={[styles.rowAvatar, i % 2 === 0 ? { backgroundColor: colors.redSoft } : styles.rowAvatarPlain]}
+                      textStyle={[styles.rowAvatarText, i % 2 === 0 && { color: colors.redText }]}
+                    />
                     <Text style={styles.rowName} numberOfLines={1}>
                       {c.nome}
                     </Text>
@@ -267,15 +268,16 @@ function PodiumColumn({ colega, place, delay, bar, avatar, avatarBg, avatarText,
   return (
     <View style={styles.column}>
       {place === 1 && <CrownIcon />}
-      <View
+      <Avatar
+        foto={colega.foto}
+        inicial={colega.inicial}
         style={[
           styles.avatar,
           place === 1 && { marginTop: 2 },
           { width: size, height: size, borderRadius: size / 2, backgroundColor: avatarBg, boxShadow: `0px 0px 0px ${ringWidth}px ${ring}` },
         ]}
-      >
-        <Text style={[styles.avatarText, { fontSize: letter, color: avatarText }]}>{colega.inicial}</Text>
-      </View>
+        textStyle={[styles.avatarText, { fontSize: letter, color: avatarText }]}
+      />
       <Text style={styles.podiumName}>{colega.nome}</Text>
       <Text style={styles.podiumXp}>{fmt(colega.xp)} XP</Text>
       <Animated.View
@@ -306,7 +308,6 @@ function PodiumColumn({ colega, place, delay, bar, avatar, avatarBg, avatarText,
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.white },
   content: { paddingHorizontal: space.gutter, paddingBottom: space.xl },
-  stats: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   titleRow: { marginTop: 18, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   title: { ...type.screenTitle, lineHeight: 31, color: colors.text },
   classPicker: {

@@ -8,6 +8,7 @@
 // turmas/{codigo}/membros/{uid}     nome e XP de cada um (ranking)
 import { deleteUser, signOut } from 'firebase/auth';
 import { collection, deleteDoc, doc, getDoc, getDocs, onSnapshot, serverTimestamp, setDoc, type Unsubscribe } from 'firebase/firestore';
+import { httpsCallable } from 'firebase/functions';
 import type { Progresso, ProvaGerada } from '@/ia/tipos';
 import { entrar, firebase, usuarioAtual } from '@/lib/firebase';
 import { app, lerEstado, nomeDe, type AppState, type TurmaRef } from './store';
@@ -20,22 +21,30 @@ let uidSincronizado: string | null = null;
 /**
  * Login (anônimo, se não tiver conta) + traz o estado da nuvem + passa a espelhar as mudanças.
  * trocouDeConta: entrou numa conta de e-mail — se ela já tem progresso na nuvem, ele manda;
- * se está vazia, herda o que está no aparelho.
+ * se está vazia, herda o que está no aparelho. Diz de onde veio o estado que ficou.
  */
-export async function iniciarNuvem(opts: { trocouDeConta?: boolean } = {}) {
+export async function iniciarNuvem(opts: { trocouDeConta?: boolean } = {}): Promise<'nuvem' | 'aparelho' | null> {
   const s = firebase();
-  if (!s) return;
+  if (!s) return null;
   const user = await entrar();
-  if (!user || (uidSincronizado === user.uid && !opts.trocouDeConta)) return;
+  if (!user || (uidSincronizado === user.uid && !opts.trocouDeConta)) return null;
   pararSincronia();
   uidSincronizado = user.uid;
   const ref = doc(s.db, 'usuarios', user.uid);
+  let origem: 'nuvem' | 'aparelho' = 'aparelho';
   try {
     const snap = await getDoc(ref);
     const nuvem = snap.exists() ? (snap.data().estado as Partial<AppState> | undefined) : undefined;
-    if (nuvem && (opts.trocouDeConta || (nuvem.atualizadoEm ?? 0) > app.get().atualizadoEm)) app.substituir(lerEstado(nuvem));
-  } catch {
-    // Sem rede: segue com o que tem no aparelho.
+    if (nuvem && (opts.trocouDeConta || (nuvem.atualizadoEm ?? 0) > app.get().atualizadoEm)) {
+      app.substituir(lerEstado(nuvem));
+      origem = 'nuvem';
+    }
+  } catch (e) {
+    // Sem rede: segue com o que tem no aparelho (mas ao trocar de conta não dá pra saber quem manda).
+    if (opts.trocouDeConta) {
+      uidSincronizado = null;
+      throw e;
+    }
   }
 
   let timer: ReturnType<typeof setTimeout> | null = null;
@@ -44,7 +53,7 @@ export async function iniciarNuvem(opts: { trocouDeConta?: boolean } = {}) {
     const estado = app.get();
     setDoc(ref, { estado: semDatas(estado), atualizadoEm: serverTimestamp() }).catch(() => {});
     // A linha do ranking só muda quando muda XP, nome ou foto.
-    const assinatura = `${estado.turma?.codigo}|${estado.xp}|${nomeDe(estado)}|${estado.fotoMini?.length ?? 0}`;
+    const assinatura = `${estado.turma?.codigo}|${estado.xp}|${nomeDe(estado)}|${estado.fotoMini?.length ?? 0}:${estado.fotoMini?.slice(-24) ?? ''}`;
     if (estado.turma && assinatura !== ultimoMembro) {
       ultimoMembro = assinatura;
       setDoc(doc(s.db, 'turmas', estado.turma.codigo, 'membros', user.uid), membro(estado)).catch(() => {});
@@ -59,6 +68,7 @@ export async function iniciarNuvem(opts: { trocouDeConta?: boolean } = {}) {
     parar();
     if (timer) clearTimeout(timer);
   };
+  return origem;
 }
 
 /** Para de espelhar (antes de sair ou trocar de conta). */
@@ -81,6 +91,13 @@ export async function salvarConteudoNuvem(provaId: string, prova: ProvaGerada) {
   const user = usuarioAtual();
   if (!s || !user) return;
   await setDoc(doc(s.db, 'usuarios', user.uid, 'conteudos', provaId), semDatas(prova));
+}
+
+export async function apagarConteudoNuvem(provaId: string) {
+  const s = firebase();
+  const user = usuarioAtual();
+  if (!s || !user) return;
+  await deleteDoc(doc(s.db, 'usuarios', user.uid, 'conteudos', provaId));
 }
 
 export async function lerConteudoNuvem(provaId: string): Promise<ProvaGerada | null> {
@@ -164,6 +181,8 @@ export async function apagarConta() {
   if (!s || !user) return;
   const estado = app.get();
   try {
+    // No servidor (se as Functions estiverem no ar) sai também o que o app não pode apagar: gerações e imagens.
+    await httpsCallable(s.functions, 'apagarMeusDados', { timeout: 20000 })().catch(() => {});
     const conteudos = await getDocs(collection(s.db, 'usuarios', user.uid, 'conteudos'));
     await Promise.all(conteudos.docs.map((d) => deleteDoc(d.ref)));
     await Promise.all(estado.turmas.map((t) => deleteDoc(doc(s.db, 'turmas', t.codigo, 'membros', user.uid)).catch(() => {})));

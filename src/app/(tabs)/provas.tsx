@@ -1,12 +1,11 @@
 // Aba Provas — sem design no canvas; prévia montada com o design system (card da Início + listas).
+// Tocar numa prova abre o detalhe (src/app/prova/[id].tsx).
 import { router } from 'expo-router';
-import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ChevronRightIcon, SubjectIcon } from '@/components/icons';
-import { InfoSheet } from '@/components/InfoSheet';
 import { ProvaCard, quando } from '@/components/ProvaCard';
-import { app, diasAte, provaAtualDe, useApp, type ProvaSalva } from '@/data/store';
+import { diasAte, provaAtualDe, useApp } from '@/data/store';
 import { shortDate } from '@/lib/dates';
 import { colors, fonts, radius, sizes, solidShadow, space, type } from '@/theme';
 
@@ -14,10 +13,9 @@ export default function Provas() {
   const insets = useSafeAreaInsets();
   const estado = useApp();
   const atual = provaAtualDe(estado);
-  const [info, setInfo] = useState<ProvaSalva | null>(null);
   const outras = estado.provas.filter((p) => p.id !== atual?.id);
   const proximas = outras.filter((p) => diasAte(p.data) >= 0).sort((a, b) => a.data.getTime() - b.data.getTime());
-  const feitas = outras.filter((p) => diasAte(p.data) < 0);
+  const feitas = outras.filter((p) => diasAte(p.data) < 0).sort((a, b) => b.data.getTime() - a.data.getTime());
 
   return (
     <ScrollView
@@ -38,11 +36,11 @@ export default function Provas() {
 
       <Text style={styles.section}>Agora</Text>
       {atual ? (
-        <Pressable accessibilityRole="link" accessibilityLabel="Abrir materiais da prova" onPress={() => router.push('/prova/materiais')}>
+        <Pressable accessibilityRole="link" accessibilityLabel={`Abrir a prova de ${atual.materia}`} onPress={() => router.push(`/prova/${atual.id}`)}>
           <ProvaCard materia={atual.materia} topico={atual.topico} data={atual.data} dias={diasAte(atual.data)} feitas={atual.feitas.length} total={atual.totalMissoes} />
         </Pressable>
       ) : (
-        <Text style={styles.vazio}>Nenhuma prova ainda. Toca em + Nova e manda a foto do caderno.</Text>
+        <Text style={styles.vazio}>Nenhuma prova ainda. Toca em + Nova e manda a foto do caderno, um PDF ou os slides.</Text>
       )}
 
       {proximas.length > 0 && (
@@ -50,7 +48,12 @@ export default function Provas() {
           <Text style={styles.section}>Próximas</Text>
           <View style={styles.list}>
             {proximas.map((p, i) => (
-              <Pressable key={p.id} accessibilityRole="button" onPress={() => setInfo(p)} style={[styles.row, i > 0 && styles.rowDivider]}>
+              <Pressable
+                key={p.id}
+                accessibilityRole="button"
+                onPress={() => router.push(`/prova/${p.id}`)}
+                style={({ pressed }) => [styles.row, i > 0 && styles.rowDivider, pressed && { opacity: 0.7 }]}
+              >
                 <View style={styles.rowIcon}>
                   <SubjectIcon subject={p.icone} size={22} color={colors.red} />
                 </View>
@@ -74,7 +77,12 @@ export default function Provas() {
           <Text style={styles.section}>Feitas</Text>
           <View style={styles.list}>
             {feitas.map((p, i) => (
-              <View key={p.id} style={[styles.row, i > 0 && styles.rowDivider]}>
+              <Pressable
+                key={p.id}
+                accessibilityRole="button"
+                onPress={() => router.push(`/prova/${p.id}`)}
+                style={({ pressed }) => [styles.row, i > 0 && styles.rowDivider, pressed && { opacity: 0.7 }]}
+              >
                 <View style={[styles.rowIcon, { backgroundColor: colors.offWhite }]}>
                   <SubjectIcon subject={p.icone} size={22} color={colors.iconMuted} />
                 </View>
@@ -89,7 +97,7 @@ export default function Provas() {
                     {p.respondidas ? `${Math.round((p.acertos / p.respondidas) * 100)}% de acerto` : `${p.feitas.length} de ${p.totalMissoes}`}
                   </Text>
                 </View>
-              </View>
+              </Pressable>
             ))}
           </View>
         </>
@@ -100,20 +108,6 @@ export default function Provas() {
           <Text style={styles.vesperaText}>Ver o modo véspera</Text>
           <ChevronRightIcon size={18} strokeWidth={2.8} color={colors.redText} />
         </Pressable>
-      )}
-
-      {info && (
-        <InfoSheet
-          mood="pensativo"
-          title={`Prova de ${info.materia}`}
-          text={`Quer estudar ${info.topico} agora? A trilha dela vira a da Início.`}
-          button="Estudar essa agora"
-          onConfirm={() => {
-            app.setProvaAtual(info.id);
-            router.navigate('/');
-          }}
-          onClose={() => setInfo(null)}
-        />
       )}
     </ScrollView>
   );

@@ -58,6 +58,10 @@ test('regras: turmas e ranking', async () => {
   await assertFails(setDoc(doc(bia, 'turmas/FERA-A1B/membros/ana'), { nome: 'Ana', inicial: 'A', xp: 0, atualizadoEm: 1 })); // linha dos outros
   await assertFails(setDoc(doc(bia, 'turmas/FERA-A1B/membros/bia'), { nome: 'Bia', inicial: 'B', xp: -5, atualizadoEm: 1 }));
   await assertFails(setDoc(doc(bia, 'turmas/FERA-ZZZ/membros/bia'), { nome: 'Bia', inicial: 'B', xp: 1, atualizadoEm: 1 })); // turma que não existe
+  // Foto miniatura: só data URI de imagem e pequena.
+  await assertSucceeds(setDoc(doc(bia, 'turmas/FERA-A1B/membros/bia'), { nome: 'Bia', inicial: 'B', xp: 30, foto: 'data:image/jpeg;base64,/9j/4AAQ', atualizadoEm: 1 }));
+  await assertFails(setDoc(doc(bia, 'turmas/FERA-A1B/membros/bia'), { nome: 'Bia', inicial: 'B', xp: 30, foto: 'https://exemplo.com/x.jpg', atualizadoEm: 1 }));
+  await assertFails(setDoc(doc(bia, 'turmas/FERA-A1B/membros/bia'), { nome: 'Bia', inicial: 'B', xp: 30, foto: `data:image/jpeg;base64,${'A'.repeat(13000)}`, atualizadoEm: 1 }));
   await assertSucceeds(getDoc(doc(ana, 'turmas/FERA-A1B/membros/bia')));
   await assertSucceeds(deleteDoc(doc(bia, 'turmas/FERA-A1B/membros/bia')));
 });
@@ -92,6 +96,24 @@ const pedido = {
   formatos: ['resumo', 'grafico'],
   anexos: [{ tipo: 'texto', texto: 'f(x) = ax + b' }],
 };
+
+test('function: apagarMeusDados leva o usuário inteiro, inclusive as gerações', async () => {
+  const { uid, token } = await loginAnonimo();
+  await env.withSecurityRulesDisabled(async (ctx) => {
+    const db = ctx.firestore();
+    await setDoc(doc(db, `usuarios/${uid}`), { estado: { xp: 10 } });
+    await setDoc(doc(db, `usuarios/${uid}/conteudos/p1`), { ok: true });
+    await setDoc(doc(db, `usuarios/${uid}/geracoes/p1`), { status: 'pronta' });
+  });
+  const sem = await chamar('apagarMeusDados', '', {});
+  assert.equal(sem.corpo.error?.status, 'UNAUTHENTICATED');
+  const r = await chamar('apagarMeusDados', token, {});
+  assert.equal(r.status, 200, JSON.stringify(r.corpo));
+  await env.withSecurityRulesDisabled(async (ctx) => {
+    const db = ctx.firestore();
+    for (const caminho of [`usuarios/${uid}`, `usuarios/${uid}/conteudos/p1`, `usuarios/${uid}/geracoes/p1`]) assert.equal((await getDoc(doc(db, caminho))).exists(), false, caminho);
+  });
+});
 
 test('function: só Fera+ gera no modo qualidade', async () => {
   const { uid, token } = await loginAnonimo();

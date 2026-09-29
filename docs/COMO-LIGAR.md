@@ -20,9 +20,13 @@ Sem configurar nada o app abre em **demonstração** (é assim que está o site 
 
 ### 1.2 Ligar os serviços
 1. **Authentication → Método de login → Anônimo → Ativar.** (Cada celular vira um usuário sem pedir e-mail.)
-2. **Firestore Database → Criar banco** → modo de produção → região `southamerica-east1` (São Paulo).
-3. **Firebase AI Logic → Começar → Gemini Developer API.** O console cria a chave do Gemini dentro do projeto; ela nunca vai pro app.
-4. (Pro site) **Authentication → Configurações → Domínios autorizados → adicionar `danihono.github.io`.**
+2. **Authentication → Método de login → E-mail/senha → Ativar** (só a primeira chave; "Link de e-mail" fica desligado). É o que faz funcionar **Criar conta**, **Entrar**, **Esqueci a senha**, **Trocar senha** e **Excluir conta**. Sem isso, essas telas avisam "Login por e-mail ainda não foi ligado".
+3. **Authentication → Modelos (Templates)** → em cada modelo (verificação de e-mail, redefinição de senha), clique no lápis e escolha **idioma: português (Brasil)**. O app já pede os e-mails em pt-BR, mas o nome do app e o remetente você ajusta ali (ex.: "Fera").
+4. **Firestore Database → Criar banco** → modo de produção → região `southamerica-east1` (São Paulo).
+5. **Firebase AI Logic → Começar → Gemini Developer API.** O console cria a chave do Gemini dentro do projeto; ela nunca vai pro app.
+6. (Pro site) **Authentication → Configurações → Domínios autorizados → adicionar `danihono.github.io`** (o `fera-bfdbb.web.app` já vem autorizado).
+
+> **Conta é opcional.** Todo mundo começa anônimo. Criar conta liga o e-mail ao mesmo usuário (nada se perde); entrar numa conta que já tem progresso traz o progresso dela; sair limpa o aparelho (os dados ficam na conta); excluir apaga tudo (Firestore, conteúdos, lugar nas turmas e o login).
 
 ### 1.3 Publicar as regras de segurança
 ```bash
@@ -90,6 +94,8 @@ Precisa do plano **Blaze** (cartão cadastrado): Cloud Functions e Cloud Storage
 
 Quem tem Fera+ passa a gerar pelo servidor (`gerarProva` e `gerarFormato`, em `functions/src/index.ts`). Modelos, qualidade das imagens e limite por dia ficam em `functions/.env`.
 
+Com as Functions no ar, **Excluir conta** também chama `apagarMeusDados`, que apaga o que o app não consegue apagar sozinho (progresso das gerações e as ilustrações no Storage). Sem as Functions, o app apaga o resto normalmente.
+
 > A compra do Fera+ ainda é simulada: o app marca `premium` no próprio perfil. Antes de cobrar de verdade, o premium tem que vir do servidor (RevenueCat ou Google Play/App Store → Cloud Function → custom claim) e a Function passa a checar o claim.
 
 ---
@@ -107,10 +113,12 @@ npx expo start --clear
 ```
 Pra testar o modo qualidade no emulador, ponha também `EXPO_PUBLIC_IA_QUALIDADE=1` e compre o Fera+ (simulado) no app.
 
+Contas nos emuladores: os e-mails não saem de verdade. O link de confirmação e o de nova senha aparecem no terminal do emulador e em <http://127.0.0.1:4000/auth>.
+
 Testes automáticos:
 ```bash
-npm run test:ia           # linha de montagem da IA (sem emulador)
-npm run test:emuladores   # regras do Firestore + Cloud Function de ponta a ponta
+npm test                  # IA + leitura de arquivos (Word, slides, planilha, HTML, zip…), sem emulador
+npm run test:emuladores   # regras do Firestore + Cloud Functions de ponta a ponta
 ```
 
 ---

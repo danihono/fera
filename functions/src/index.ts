@@ -204,3 +204,18 @@ export const gerarFormato = onCall(opcoes, async (req) => {
     throw erroPraApp(e);
   }
 });
+
+/**
+ * Excluir conta: apaga no servidor tudo da pessoa, inclusive o que o app não pode apagar sozinho
+ * (progresso das gerações e imagens geradas no Storage). O app chama antes de apagar o usuário.
+ */
+export const apagarMeusDados = onCall({ cors: true }, async (req) => {
+  const uid = req.auth?.uid;
+  if (!uid) throw new HttpsError('unauthenticated', 'Entra pra continuar.');
+  await getStorage()
+    .bucket()
+    .deleteFiles({ prefix: `usuarios/${uid}/` })
+    .catch(() => {});
+  await db.recursiveDelete(db.doc(`usuarios/${uid}`));
+  return { ok: true };
+});

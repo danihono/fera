@@ -5,8 +5,8 @@ import { colors, fonts, radius, solidShadow } from '@/theme';
 
 const WEEKDAYS = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB'];
 
-/** "hoje", "amanhã", "em 3 dias". */
-export const quando = (dias: number) => (dias <= 0 ? 'hoje' : dias === 1 ? 'amanhã' : `em ${dias} dias`);
+/** "hoje", "amanhã", "em 3 dias" (e "já foi" depois da data). */
+export const quando = (dias: number) => (dias < 0 ? 'já foi' : dias === 0 ? 'hoje' : dias === 1 ? 'amanhã' : `em ${dias} dias`);
 
 type Props = {
   materia: string;

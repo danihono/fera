@@ -13,6 +13,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { SemInternet } from '@/components/SemInternet';
 import { iniciarNuvem } from '@/data/nuvem';
 import { app } from '@/data/store';
 import { colors } from '@/theme';
@@ -70,7 +71,18 @@ export default function RootLayout() {
         <Stack.Screen name="premium" options={{ presentation: 'modal' }} />
         <Stack.Screen name="configuracoes" />
         <Stack.Screen name="conquistas" />
+        <Stack.Screen name="conta/index" />
+        <Stack.Screen name="conta/entrar" />
+        <Stack.Screen name="conta/criar" />
+        <Stack.Screen name="conta/esqueci" />
+        <Stack.Screen name="conta/senha" />
+        <Stack.Screen name="conta/excluir" />
+        <Stack.Screen name="prova/[id]" />
+        <Stack.Screen name="ajuda" />
+        <Stack.Screen name="legal/[doc]" />
+        <Stack.Screen name="+not-found" />
       </Stack>
+      <SemInternet />
     </SafeAreaProvider>
   );
 }

@@ -9,13 +9,17 @@ type Props = {
   title: string;
   text: string;
   button: string;
+  /** Botão principal em outra cor (ex.: 'error' pra ações que apagam). */
+  variant?: 'primary' | 'error';
   /** Roda depois que a sheet fecha pelo botão. */
   onConfirm?: () => void;
+  /** Segundo botão (branco), embaixo do principal. */
+  secondary?: { label: string; onPress?: () => void };
   onClose: () => void;
 };
 
-/** Aviso rápido em sheet: Rugi espiando no canto, título, texto e um botão. */
-export function InfoSheet({ mood, title, text, button, onConfirm, onClose }: Props) {
+/** Aviso rápido em sheet: Rugi espiando no canto, título, texto e um botão (ou dois). */
+export function InfoSheet({ mood, title, text, button, variant = 'primary', onConfirm, secondary, onClose }: Props) {
   return (
     <BottomSheet onClose={onClose}>
       {(close) => (
@@ -27,7 +31,8 @@ export function InfoSheet({ mood, title, text, button, onConfirm, onClose }: Pro
             <Text style={styles.title}>{title}</Text>
             <Text style={styles.text}>{text}</Text>
           </View>
-          <FeraButton label={button} onPress={() => close(onConfirm)} />
+          <FeraButton label={button} variant={variant} onPress={() => close(onConfirm)} />
+          {secondary && <FeraButton label={secondary.label} variant="secondary" onPress={() => close(secondary.onPress)} />}
         </>
       )}
     </BottomSheet>

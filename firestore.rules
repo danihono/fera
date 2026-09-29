@@ -42,11 +42,16 @@ service cloud.firestore {
         allow delete: if eu(uid);
         allow create, update: if eu(uid)
           && exists(/databases/$(database)/documents/turmas/$(codigo))
-          && request.resource.data.keys().hasOnly(['nome', 'inicial', 'xp', 'atualizadoEm'])
+          && request.resource.data.keys().hasOnly(['nome', 'inicial', 'xp', 'foto', 'atualizadoEm'])
           && request.resource.data.nome is string
           && request.resource.data.nome.size() <= 30
           && request.resource.data.xp is int
-          && request.resource.data.xp >= 0;
+          && request.resource.data.xp >= 0
+          // Foto miniatura (72 px, data:image/jpeg;base64,…) pro pódio e a lista.
+          && (!('foto' in request.resource.data)
+              || (request.resource.data.foto is string
+                  && request.resource.data.foto.size() <= 12288
+                  && request.resource.data.foto.matches('^data:image/(jpeg|png|webp);base64,.*')));
       }
     }
   }

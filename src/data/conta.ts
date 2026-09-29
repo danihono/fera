@@ -17,7 +17,7 @@ import {
 } from 'firebase/auth';
 import { useSyncExternalStore } from 'react';
 import { firebase, firebaseLigado } from '@/lib/firebase';
-import { apagarConteudos } from './conteudo';
+import { apagarConteudos, subirConteudos } from './conteudo';
 import { apagarConta, iniciarNuvem, pararSincronia } from './nuvem';
 import { limpar } from './rascunho';
 import { app } from './store';
@@ -63,7 +63,7 @@ export const contasDisponiveis = firebaseLigado;
 export class ErroConta extends Error {
   constructor(
     message: string,
-    public campo: 'email' | 'senha' | 'nome' | null = null,
+    public campo: 'email' | 'senha' | 'nova' | 'nome' | null = null,
   ) {
     super(message);
   }
@@ -162,8 +162,21 @@ export async function entrarComEmail(email: string, senha: string) {
   } catch (e) {
     throw traduzir(e);
   }
-  await iniciarNuvem({ trocouDeConta: true });
+  let origem: 'nuvem' | 'aparelho' | null;
+  try {
+    origem = await iniciarNuvem({ trocouDeConta: true });
+  } catch {
+    // Sem saber o que tem na conta, não dá pra decidir quem manda: volta a ser anônimo e pede pra tentar de novo.
+    await signOut(s.auth).catch(() => {});
+    iniciarNuvem().catch(() => {});
+    throw new ErroConta('Não consegui buscar seu progresso agora. Confere a internet e tenta de novo.');
+  }
+  // A conta trouxe o progresso dela: o conteúdo das provas deste aparelho era do outro usuário.
+  if (origem === 'nuvem') await apagarConteudos();
+  // A conta estava vazia e herdou o aparelho: leva junto o conteúdo das provas.
+  else await subirConteudos(app.get().provas.map((p) => p.id));
   app.setOnboarded();
+  set(deUsuario(s.auth.currentUser));
 }
 
 /** Link de nova senha. Não diz se o e-mail existe (proteção contra quem tenta descobrir contas). */
@@ -207,14 +220,21 @@ async function reautenticar(senha: string) {
   return u;
 }
 
+/** Erros com campo 'nova' são da senha nova; 'senha' é a atual. */
 export async function trocarSenha(atual: string, nova: string) {
-  validarSenha(nova);
-  if (atual === nova) throw new ErroConta('A nova senha tem que ser diferente da atual.', 'senha');
+  if (!atual) throw new ErroConta('Escreve a senha atual.', 'senha');
+  try {
+    validarSenha(nova);
+  } catch (e) {
+    throw new ErroConta((e as Error).message, 'nova');
+  }
+  if (atual === nova) throw new ErroConta('A senha nova tem que ser diferente da atual.', 'nova');
   const u = await reautenticar(atual);
   try {
     await updatePassword(u, nova);
   } catch (e) {
-    throw traduzir(e);
+    const x = traduzir(e);
+    throw x.campo === 'senha' ? new ErroConta(x.message, 'nova') : x;
   }
 }
 
@@ -247,14 +267,15 @@ export async function sair() {
 
 /** Exclui tudo: dados na nuvem, conteúdos, turmas e o usuário. Conta de e-mail confirma com a senha. */
 export async function excluirConta(senha?: string) {
-  const s = servicos();
-  const u = s.auth.currentUser;
+  // Sem Firebase (demonstração) só tem o que está no aparelho.
+  const s = firebase();
+  const u = s?.auth.currentUser;
   if (u && !u.isAnonymous) {
     if (!senha) throw new ErroConta('Confirma com a sua senha.', 'senha');
     await reautenticar(senha);
   }
   await apagarConta();
   // apagarConta faz signOut se o deleteUser falhar; garantimos que não sobra sessão.
-  if (s.auth.currentUser) await signOut(s.auth).catch(() => {});
+  if (s?.auth.currentUser) await signOut(s.auth).catch(() => {});
   await recomecarNoAparelho();
 }

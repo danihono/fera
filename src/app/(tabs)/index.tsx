@@ -18,9 +18,9 @@ import { FeraButton } from '@/components/FeraButton';
 import { CheckIcon, LockIcon, StarIcon, TrophyIcon } from '@/components/icons';
 import { ProvaCard } from '@/components/ProvaCard';
 import { Rugi } from '@/components/Rugi';
-import { StatPill } from '@/components/StatPill';
+import { Pilulas } from '@/components/Pilulas';
 import { useConteudo } from '@/data/conteudo';
-import { app, diaDe, diasAte, hoje, provaAtualDe, proximaMissao, sequenciaQuebrada, streakAtual, useApp, VIDAS } from '@/data/store';
+import { app, diaDe, diasAte, hoje, provaAtualDe, proximaMissao, sequenciaQuebrada, useApp } from '@/data/store';
 import { colors, fonts, radius, sizes, solidShadow, space } from '@/theme';
 
 
@@ -57,7 +57,7 @@ export default function Inicio() {
   const scale = Math.min(1, width / BASE_WIDTH);
 
   const estado = useApp();
-  const { prova: rascunho, xp, premium } = estado;
+  const { prova: rascunho } = estado;
   const prova = provaAtualDe(estado);
   const { conteudo } = useConteudo(prova?.id ?? null);
 
@@ -104,11 +104,7 @@ export default function Inicio() {
       contentContainerStyle={[styles.content, { paddingTop: insets.top + sizes.topExtra }]}
       showsVerticalScrollIndicator={false}
     >
-      <View style={styles.stats}>
-        <StatPill kind="streak" value={streakAtual(estado)} />
-        <StatPill kind="xp" value={xp} />
-        <StatPill kind="lives" value={premium ? '∞' : VIDAS} />
-      </View>
+      <Pilulas />
 
       {/* Tocar no card abre os materiais da prova (prévia fora do design). */}
       <Pressable
@@ -257,7 +253,6 @@ function Ring({ t, style }: { t: SharedValue<number>; style: ViewStyle }) {
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.white },
   content: { paddingHorizontal: space.gutter },
-  stats: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   card: { marginTop: 14 },
   trail: { width: BASE_WIDTH, height: TRAIL_HEIGHT, transformOrigin: 'top' },
   tag: { height: 28, paddingHorizontal: 12, borderRadius: radius.pill, justifyContent: 'center' },

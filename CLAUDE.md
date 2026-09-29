@@ -47,13 +47,24 @@ Montadas só com o design system para dar uma ideia do app completo — substitu
 | Tela | Rota | Entrada |
 | --- | --- | --- |
 | Provas (aba) | `src/app/(tabs)/provas.tsx` | tab bar |
+| Detalhe da prova | `src/app/prova/[id].tsx` | provas da aba Provas |
 | Configurações | `src/app/configuracoes.tsx` | engrenagem do Perfil |
+| Minha conta | `src/app/conta/index.tsx` | avatar do Perfil, Configurações |
+| Entrar · Criar conta · Esqueci a senha | `src/app/conta/entrar.tsx`, `criar.tsx`, `esqueci.tsx` | "Já tenho conta" (02a), Minha conta, cartão do Perfil |
+| Trocar senha · Excluir conta | `src/app/conta/senha.tsx`, `excluir.tsx` | Minha conta |
+| Ajuda · Termos/Privacidade · 404 | `src/app/ajuda.tsx`, `legal/[doc].tsx`, `+not-found.tsx` | Configurações, Criar conta |
 | Todas as conquistas | `src/app/conquistas.tsx` | "Ver todas" do Perfil |
 | Trocar/entrar em turma | sheets em `src/app/(tabs)/turma.tsx` | seletor de turma |
 | Conferir o conteúdo | `src/app/prova/conteudo.tsx` | cards da Nova prova (04) |
 | Escolha de formatos | `src/app/prova/formatos.tsx` | Conteúdo |
 | Materiais da prova | `src/app/prova/materiais.tsx` | fim da Gerando, card da Início/Provas |
 | Material (resumo, slides…) | `src/app/material/[tipo].tsx` + `src/components/materiais/` | Materiais |
+
+Peças dessas telas: `Lista` (`Secao`/`Linha`), `Campo`, `Avatar`, `SerieSheet`, `DataSheet`, `Pilulas` (pílulas da Início/Turma com explicação), `SemInternet` (faixa no layout raiz) e `components/conta/ui.tsx`.
+
+Conta (`src/data/conta.ts`) é opcional e só e-mail/senha: todo mundo começa anônimo; criar conta faz `linkWithCredential` (mesmo uid, nada se perde); entrar numa conta com progresso na nuvem troca o do aparelho (conta vazia herda o do aparelho); sair limpa o aparelho; excluir apaga nuvem + aparelho (+ `apagarMeusDados` nas Functions). Foto de perfil: `src/lib/fotoPerfil.ts` (256 px no estado, 72 px no ranking da turma, sem Storage).
+
+Arquivos da Nova prova: `src/lib/arquivos.ts` (JS puro, testado em `tests/arquivos.test.ts`) lê imagem, PDF, Word, slides, planilha, ODF, ePub, HTML, RTF, legendas, texto, áudio/vídeo e .zip (inclusive zip dentro de zip); o que vira texto quase não pesa no limite de 14 MB.
 
 Formatos (grátis e Fera+) ficam em `src/data/formatos.tsx`. Grátis escolhe até 2 formatos por prova, Fera+ até 4; o quiz (missões da trilha) sempre vem e não conta.
 
@@ -66,8 +77,8 @@ Formatos (grátis e Fera+) ficam em `src/data/formatos.tsx`. Grátis escolhe at�
 - Firestore: `usuarios/{uid}` (estado), `conteudos/{prova}`, `geracoes/{prova}` (só servidor escreve), `turmas/{codigo}/membros/{uid}`. Mudou as regras? Rode `npm run test:emuladores`.
 - Passo a passo em `docs/COMO-LIGAR.md`; escolhas de IA e custos em `docs/IA.md`.
 
-Também são prévia: preços do Fera+ (compra simulada), atalhos "Prévias" nas Configurações (Streak e Véspera), troféu do Dia D → Véspera, textos das sheets (`InfoSheet`).
-O estado do app (onboarding, provas, progresso da trilha, XP, sequência, Fera+, turma, nome, série) fica em `src/data/store.ts`, salvo no aparelho com AsyncStorage (localStorage na web) e espelhado no Firestore quando o Firebase está ligado (`src/data/nuvem.ts`). "Sair da conta" apaga tudo, inclusive na nuvem.
+Também são prévia: preços do Fera+ (compra e cancelamento simulados), atalhos "Prévias" nas Configurações (Streak e Véspera), troféu do Dia D → Véspera, textos das sheets (`InfoSheet`), Termos e Política de privacidade (`src/data/legal.ts`, revisar com advogado).
+O estado do app (onboarding, provas, progresso da trilha, XP, sequência, Fera+, turma, nome, foto, série) fica em `src/data/store.ts`, salvo no aparelho com AsyncStorage (localStorage na web) e espelhado no Firestore quando o Firebase está ligado (`src/data/nuvem.ts`). Sem conta, "Sair" apaga tudo (avisando e oferecendo criar conta); com conta, só limpa o aparelho.
 
 Site (GitHub Pages): `/fera/` é a moldura de celular (`web/index.html`) e `/fera/app/` é o app (`baseUrl` no `app.json`). Dentro da moldura, `src/lib/webFrame.ts` simula as áreas seguras do iPhone (47/34).
 

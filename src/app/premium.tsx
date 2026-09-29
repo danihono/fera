@@ -32,7 +32,7 @@ export default function Premium() {
   const insets = useSafeAreaInsets();
   const [plan, setPlan] = useState<(typeof PLANS)[number]['id']>('anual');
   const { premium } = useApp();
-  const [sheet, setSheet] = useState<null | 'comprou' | 'restaurar'>(null);
+  const [sheet, setSheet] = useState<null | 'comprou' | 'restaurar' | 'gerenciar' | 'cancelar'>(null);
 
   // crown 2.2s · twinkle 1.8s (atrasos 0 / .6s / 1.2s)
   const crown = useLoop(2200);
@@ -121,7 +121,7 @@ export default function Premium() {
           })}
         </View>
       </Rolavel>
-      <FeraButton label={premium ? 'Você já é Fera+' : 'Quero ser Fera+'} disabled={premium} onPress={() => setSheet('comprou')} />
+      <FeraButton label={premium ? 'Gerenciar assinatura' : 'Quero ser Fera+'} variant={premium ? 'secondary' : 'primary'} onPress={() => setSheet(premium ? 'gerenciar' : 'comprou')} />
 
       {/* Prévia: sem pagamento de verdade ainda. */}
       {sheet === 'comprou' && (
@@ -135,6 +135,33 @@ export default function Premium() {
             router.back();
           }}
           onClose={() => setSheet(null)}
+        />
+      )}
+      {/* Na versão final quem gerencia é a loja (App Store / Google Play); aqui dá pra voltar pro grátis e testar. */}
+      {sheet === 'gerenciar' && (
+        <InfoSheet
+          mood="trofeu"
+          title="Você é Fera+"
+          text="Vidas infinitas, IA completa e até 4 formatos por prova. Nas lojas, a assinatura se gerencia nos ajustes do celular. Aqui é prévia: cancelar só volta pro grátis."
+          button="Continuar Fera+"
+          secondary={{ label: 'Cancelar assinatura', onPress: () => setSheet('cancelar') }}
+          onClose={() => setSheet((s) => (s === 'gerenciar' ? null : s))}
+        />
+      )}
+      {sheet === 'cancelar' && (
+        <InfoSheet
+          mood="triste"
+          title="Cancelar o Fera+?"
+          text="Você volta pro plano grátis: 5 vidas por missão, 2 formatos por prova e a IA grátis. Suas provas e seu XP continuam."
+          button="Ficar no Fera+"
+          secondary={{
+            label: 'Cancelar mesmo',
+            onPress: () => {
+              app.setPremium(false);
+              router.back();
+            },
+          }}
+          onClose={() => setSheet((s) => (s === 'cancelar' ? null : s))}
         />
       )}
       {sheet === 'restaurar' && (

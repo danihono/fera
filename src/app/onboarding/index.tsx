@@ -15,6 +15,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ellipse } from '@/components/Ellipse';
 import { FeraButton } from '@/components/FeraButton';
 import { Rugi } from '@/components/Rugi';
+import { contasDisponiveis } from '@/data/conta';
 import { app } from '@/data/store';
 import { colors, fonts, radius, sizes, space } from '@/theme';
 
@@ -27,7 +28,7 @@ export default function OnboardingRugi() {
   // Celular baixo: o palco encolhe pra caber; no tamanho do design fica em 1.
   const [alturaCentro, setAlturaCentro] = useState(0);
   const escala = alturaCentro ? Math.max(0.6, Math.min(1, (alturaCentro - BUBBLE_E_GAP) / STAGE_H)) : 1;
-  // "Pular" e "Já tenho conta" contam como onboarding feito.
+  // "Pular" conta como onboarding feito. "Já tenho conta" abre o Entrar (sem Firebase, pula como antes).
   const skip = () => {
     app.setOnboarded();
     router.replace('/(tabs)');
@@ -95,7 +96,7 @@ export default function OnboardingRugi() {
       <View style={styles.bottom}>
         <Text style={styles.copy}>Você manda o conteúdo da prova. Eu transformo em missões de 5 minutos.</Text>
         <FeraButton label="Bora!" onPress={() => router.push('/onboarding/materia')} />
-        <Pressable accessibilityRole="link" onPress={skip} style={styles.secondaryLink}>
+        <Pressable accessibilityRole="link" onPress={() => (contasDisponiveis ? router.push('/conta/entrar?de=onboarding') : skip())} style={styles.secondaryLink}>
           <Text style={styles.secondaryLinkText}>Já tenho conta</Text>
         </Pressable>
       </View>

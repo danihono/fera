@@ -35,7 +35,7 @@ export function Linha({ icone, rotulo, sub, valor, direita, perigo, onPress }: L
   const conteudo = (
     <>
       {icone && <View style={[styles.icone, perigo && { backgroundColor: colors.errorBg }]}>{icone}</View>}
-      <View style={{ flex: 1 }}>
+      <View style={styles.textos}>
         <Text style={[styles.rotulo, perigo && { color: colors.errorText }]}>{rotulo}</Text>
         {sub && <Text style={styles.sub}>{sub}</Text>}
       </View>
@@ -63,7 +63,8 @@ const styles = StyleSheet.create({
   divisor: { height: sizes.borderWidth, backgroundColor: colors.border, marginHorizontal: 16 },
   linha: { minHeight: 64, paddingHorizontal: 14, paddingVertical: 8, flexDirection: 'row', alignItems: 'center', gap: 14 },
   icone: { width: 40, height: 40, borderRadius: 14, backgroundColor: colors.redSoft, alignItems: 'center', justifyContent: 'center' },
+  textos: { flex: 1 },
   rotulo: { fontFamily: fonts.nunito800, fontSize: 16, color: colors.text },
   sub: { fontFamily: fonts.nunito600, fontSize: 13, color: colors.textMuted },
-  valor: { maxWidth: 150, fontFamily: fonts.nunito700, fontSize: 14, color: colors.textMuted },
+  valor: { flexShrink: 1, maxWidth: 150, fontFamily: fonts.nunito700, fontSize: 14, color: colors.textMuted },
 });

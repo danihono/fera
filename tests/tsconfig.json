@@ -1,6 +1,14 @@
 {
   "extends": "../tsconfig.json",
-  "compilerOptions": { "types": ["node"] },
-  "include": ["**/*.ts", "../src/ia/**/*.ts"],
+  "compilerOptions": {
+    "types": [
+      "node"
+    ]
+  },
+  "include": [
+    "**/*.ts",
+    "../src/ia/**/*.ts",
+    "../src/lib/arquivos.ts"
+  ],
   "exclude": []
 }

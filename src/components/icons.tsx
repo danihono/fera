@@ -552,3 +552,138 @@ export function ImageIcon({ size = 22, color = colors.red }: StrokeIconProps) {
     </Svg>
   );
 }
+
+// Arquivos, conta e telas de apoio (fora do canvas; mesmo traço 2.5 arredondado dos outros).
+const stroke = (color: string, strokeWidth = 2.5) => ({ fill: 'none', stroke: color, strokeWidth, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const });
+
+export function MicIcon({ size = 22, color = colors.red }: StrokeIconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" {...stroke(color)}>
+      <Rect x={9} y={3.5} width={6} height={11} rx={3} />
+      <Path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v2.5" />
+    </Svg>
+  );
+}
+
+export function VideoIcon({ size = 22, color = colors.red }: StrokeIconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" {...stroke(color)}>
+      <Rect x={3} y={6} width={13} height={12} rx={2.5} />
+      <Path d="M16 10.5l5-3v9l-5-3z" />
+    </Svg>
+  );
+}
+
+export function GlobeIcon({ size = 22, color = colors.red }: StrokeIconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" {...stroke(color)}>
+      <Circle cx={12} cy={12} r={8.5} />
+      <Path d="M3.5 12h17M12 3.5c2.4 2.3 3.6 5.2 3.6 8.5s-1.2 6.2-3.6 8.5c-2.4-2.3-3.6-5.2-3.6-8.5s1.2-6.2 3.6-8.5z" />
+    </Svg>
+  );
+}
+
+export function TableIcon({ size = 22, color = colors.red }: StrokeIconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" {...stroke(color)}>
+      <Rect x={3.5} y={4.5} width={17} height={15} rx={2} />
+      <Path d="M3.5 9.5h17M3.5 14.5h17M9.5 9.5v10" />
+    </Svg>
+  );
+}
+
+export function FolderIcon({ size = 22, color = colors.red }: StrokeIconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" {...stroke(color)}>
+      <Path d="M3.5 7a1.5 1.5 0 0 1 1.5-1.5h4l2 2.5h8a1.5 1.5 0 0 1 1.5 1.5v8.5A1.5 1.5 0 0 1 19 19.5H5A1.5 1.5 0 0 1 3.5 18z" />
+    </Svg>
+  );
+}
+
+export function UploadIcon({ size = 22, color = colors.red }: StrokeIconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" {...stroke(color)}>
+      <Path d="M12 15.5v-11M7.5 9 12 4.5 16.5 9M4.5 15v3a1.5 1.5 0 0 0 1.5 1.5h12a1.5 1.5 0 0 0 1.5-1.5v-3" />
+    </Svg>
+  );
+}
+
+export function EyeIcon({ size = 22, color = colors.textMuted, off = false }: StrokeIconProps & { off?: boolean }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" {...stroke(color, 2.2)}>
+      <Path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z" />
+      <Circle cx={12} cy={12} r={3} />
+      {off && <Path d="M4 4l16 16" />}
+    </Svg>
+  );
+}
+
+export function MailIcon({ size = 22, color = colors.red }: StrokeIconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" {...stroke(color)}>
+      <Rect x={3.5} y={5.5} width={17} height={13} rx={2} />
+      <Path d="M4 7l8 6 8-6" />
+    </Svg>
+  );
+}
+
+export function KeyIcon({ size = 22, color = colors.red }: StrokeIconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" {...stroke(color)}>
+      <Circle cx={8} cy={15} r={4} />
+      <Path d="M11 12l8.5-8.5M16 7l2.5 2.5M18.5 4.5l1.5 1.5" />
+    </Svg>
+  );
+}
+
+export function TrashIcon({ size = 22, color = colors.red }: StrokeIconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" {...stroke(color)}>
+      <Path d="M4.5 6.5h15M9.5 6.5V4.5h5v2M6.5 6.5l1 13h9l1-13M10 10.5v5.5M14 10.5v5.5" />
+    </Svg>
+  );
+}
+
+export function ShieldIcon({ size = 22, color = colors.red }: StrokeIconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" {...stroke(color)}>
+      <Path d="M12 3.5l7.5 3v5.5c0 4.4-3.2 7.6-7.5 8.5-4.3-.9-7.5-4.1-7.5-8.5V6.5z" />
+      <Path d="M8.8 12.2l2.2 2.2 4.2-4.4" />
+    </Svg>
+  );
+}
+
+export function InfoIcon({ size = 22, color = colors.red }: StrokeIconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" {...stroke(color)}>
+      <Circle cx={12} cy={12} r={8.5} />
+      <Path d="M12 11v5.5M12 7.8h.01" />
+    </Svg>
+  );
+}
+
+export function WifiOffIcon({ size = 18, color = colors.white }: StrokeIconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" {...stroke(color)}>
+      <Path d="M3 3l18 18M8.5 16a5 5 0 0 1 6.3-.6M5 12.5a10 10 0 0 1 4-2.3M19 12.5a10 10 0 0 0-3.2-2M2 9a15 15 0 0 1 4.3-2.7M22 9a15 15 0 0 0-10-3.8M12 19.5h.01" />
+    </Svg>
+  );
+}
+
+export function CameraSmallIcon({ size = 18, color = colors.white }: StrokeIconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" {...stroke(color)}>
+      <Path d="M4.5 8h2.8l1.7-2.5h6l1.7 2.5h2.8A1.5 1.5 0 0 1 21 9.5V18a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 18V9.5A1.5 1.5 0 0 1 4.5 8z" />
+      <Circle cx={12} cy={13.5} r={3.5} />
+    </Svg>
+  );
+}
+
+export function CalendarEditIcon({ size = 22, color = colors.red }: StrokeIconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" {...stroke(color)}>
+      <Rect x={3.5} y={5} width={17} height={15} rx={2} />
+      <Path d="M3.5 10h17M8 3v4M16 3v4M9 15l2 2 4-4" />
+    </Svg>
+  );
+}

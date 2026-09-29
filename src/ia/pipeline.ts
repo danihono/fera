@@ -7,6 +7,7 @@ import { blocoDoMaterial, instrucaoDaTarefa, pedidoDaCorrecao, pedidoDaRevisao, 
 import { bancoDa, revisorConcorda } from './questoes';
 import {
   ehMaterial,
+  type Anexo,
   type MaterialId,
   type Materiais,
   type MissaoIA,
@@ -122,10 +123,26 @@ async function emParalelo<T>(tarefas: (() => Promise<T>)[], n: number): Promise<
 const plural = (n: number, um: string, varios: string) => `${n} ${n === 1 ? um : varios}`;
 
 function linhaDoMaterial(p: PedidoGeracao) {
-  const fotos = p.anexos.filter((a) => a.tipo === 'foto').length;
-  const pdfs = p.anexos.filter((a) => a.tipo === 'pdf').length;
-  const partes = [fotos && plural(fotos, 'foto lida', 'fotos lidas'), pdfs && plural(pdfs, 'PDF lido', 'PDFs lidos')].filter(Boolean);
-  return partes.length ? partes.join(' e ') : 'Texto lido';
+  const conta = (f: (a: Anexo) => boolean) => p.anexos.filter(f).length;
+  const fotos = conta((a) => a.tipo === 'foto');
+  const pdfs = conta((a) => a.tipo === 'pdf');
+  const midias = conta((a) => a.tipo === 'midia');
+  const arquivos = conta((a) => a.tipo === 'texto' && !!a.nome);
+  const partes = [
+    fotos && plural(fotos, 'foto', 'fotos'),
+    pdfs && plural(pdfs, 'PDF', 'PDFs'),
+    arquivos && plural(arquivos, 'arquivo', 'arquivos'),
+    midias && plural(midias, 'áudio/vídeo', 'áudios/vídeos'),
+  ].filter(Boolean) as string[];
+  if (!partes.length) return 'Texto lido';
+  const lista = partes.length === 1 ? partes[0] : `${partes.slice(0, -1).join(', ')} e ${partes[partes.length - 1]}`;
+  return `${lista} ${p.anexos.length === 1 ? 'lido' : 'lidos'}`;
+}
+
+/** Cada anexo vira parte do pedido; arquivos levam o nome antes (a IA sabe o que é slide, apostila, áudio…). */
+function partesDoAnexo(a: Anexo): Parte[] {
+  if (a.tipo === 'texto') return [{ texto: a.nome ? `ARQUIVO "${a.nome}" (texto extraído):\n${a.texto}` : `TEXTO DO ALUNO:\n${a.texto}` }];
+  return [{ texto: `ARQUIVO "${a.nome}":` }, { arquivo: { mime: a.mime, base64: a.base64 } }];
 }
 
 export type OpcoesGeracao = {
@@ -181,11 +198,9 @@ export async function gerarProva(
   } else {
     if (pedido.anexos.length === 0) throw new ErroGeracao('sem-conteudo', 'Manda pelo menos uma foto, um PDF ou um texto.');
     const temFoto = pedido.anexos.some((a) => a.tipo === 'foto');
-    progresso('lendo', 3, temFoto ? 'Lendo sua letra (tá bonita, hein)' : 'Lendo o seu material…');
-    const partesDoPlano: Parte[] = [
-      ...pedido.anexos.map((a): Parte => (a.tipo === 'texto' ? { texto: `TEXTO DO ALUNO:\n${a.texto}` } : { arquivo: { mime: a.mime, base64: a.base64 } })),
-      { texto: pedidoDoPlano(pedido) },
-    ];
+    const temMidia = pedido.anexos.some((a) => a.tipo === 'midia');
+    progresso('lendo', 3, temFoto ? 'Lendo sua letra (tá bonita, hein)' : temMidia ? 'Ouvindo a aula…' : 'Lendo o seu material…');
+    const partesDoPlano: Parte[] = [...pedido.anexos.flatMap(partesDoAnexo), { texto: pedidoDoPlano(pedido) }];
     try {
       plano = await chamar('plano', partesDoPlano, N.plano);
     } catch (e) {

@@ -23,7 +23,7 @@ const OPENAI_API_KEY = defineSecret('OPENAI_API_KEY');
 /** Gerações por pessoa por dia (proteção de custo). */
 const LIMITE_DIA = Number(process.env.FERA_LIMITE_DIA || 10);
 const FORMATOS: FormatoId[] = ['resumo', 'explicacao', 'mapa', 'quiz', 'slides', 'grafico', 'fluxo', 'imagens', 'teste', 'simulado'];
-const MAX_ANEXOS_BYTES = 20 * 1024 * 1024;
+const MAX_ANEXOS_BYTES = 24 * 1024 * 1024;
 
 const opcoes = {
   secrets: [ANTHROPIC_API_KEY, GEMINI_API_KEY, OPENAI_API_KEY],
@@ -55,11 +55,13 @@ function lerPedido(v: unknown): PedidoGeracao {
     Number.isFinite(p.minutosDia) &&
     Array.isArray(p.formatos) &&
     p.formatos.every((f) => FORMATOS.includes(f)) &&
-    anexos.length <= 12 &&
+    anexos.length <= 300 &&
     anexos.every(
       (a: Anexo) =>
         (a.tipo === 'texto' && typeof a.texto === 'string') ||
-        ((a.tipo === 'foto' || a.tipo === 'pdf') && typeof a.base64 === 'string' && /^(image\/(jpeg|png|webp)|application\/pdf)$/.test(a.mime)),
+        (a.tipo === 'foto' && typeof a.base64 === 'string' && /^image\/(jpeg|png|webp|gif|heic|heif)$/.test(a.mime)) ||
+        (a.tipo === 'pdf' && typeof a.base64 === 'string' && a.mime === 'application/pdf') ||
+        (a.tipo === 'midia' && typeof a.base64 === 'string' && /^(audio|video)\/[\w.+-]+$/.test(a.mime)),
     );
   if (!ok) throw new HttpsError('invalid-argument', 'Pedido inválido.');
   const bytes = anexos.reduce((n, a) => n + (a.tipo === 'texto' ? a.texto.length : a.base64.length), 0);

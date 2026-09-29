@@ -29,6 +29,8 @@ export type ProvaSalva = Rascunho & {
   feitasEm: Record<string, string>;
   /** Erros por tópico (alimenta a revisão da véspera). */
   erros: Record<string, number>;
+  /** Acertos por tópico (desempenho no detalhe da prova). */
+  acertosTopico?: Record<string, number>;
   acertos: number;
   respondidas: number;
   criadaEm: string;
@@ -53,6 +55,9 @@ export type AppState = {
   turma: TurmaRef | null;
   turmas: TurmaRef[];
   nome: string;
+  /** Foto de perfil (JPEG 256 px em data URI) e a miniatura que vai pro ranking da turma (72 px). */
+  foto: string | null;
+  fotoMini: string | null;
   serie: string;
   lembrete: boolean;
   sons: boolean;
@@ -126,6 +131,8 @@ const inicial = (): AppState => ({
   turma: null,
   turmas: [],
   nome: '',
+  foto: null,
+  fotoMini: null,
   serie: '2º ano (EM)',
   lembrete: true,
   sons: true,
@@ -196,6 +203,13 @@ export const app = {
   /** Prova nova com a trilha pronta: vira a prova atual. */
   adicionarProva: (p: ProvaSalva) => set({ provas: [p, ...state.provas.filter((x) => x.id !== p.id)], provaAtual: p.id }),
   setProvaAtual: (id: string) => set({ provaAtual: id }),
+  setDataProva: (id: string, data: Date) => atualizarProva(id, (p) => ({ ...p, data })),
+  /** Tira a prova da lista; se era a atual, a próxima que ainda vai acontecer assume a trilha. */
+  excluirProva: (id: string) => {
+    const provas = state.provas.filter((p) => p.id !== id);
+    const proxima = [...provas].filter((p) => diasAte(p.data) >= 0).sort((a, b) => a.data.getTime() - b.data.getTime())[0];
+    set({ provas, provaAtual: state.provaAtual === id ? (proxima?.id ?? null) : state.provaAtual });
+  },
   setFormatos: (id: string, formatos: FormatoId[]) => atualizarProva(id, (p) => ({ ...p, formatos })),
 
   /** Fim de missão: XP, progresso da trilha, erros por tópico e sequência de dias. */
@@ -207,19 +221,24 @@ export const app = {
     acertos: number;
     respondidas: number;
     errosPorTopico: Record<string, number>;
+    acertosPorTopico?: Record<string, number>;
   }) => {
     const dia = diaDe(hoje());
     const jaHoje = state.ultimoDia === dia;
     const streak = jaHoje ? state.streak : state.ultimoDia === ontem() ? state.streak + 1 : 1;
+    const somar = (base: Record<string, number>, mais: Record<string, number> = {}) => {
+      const out = { ...base };
+      for (const [t, n] of Object.entries(mais)) out[t] = (out[t] ?? 0) + n;
+      return out;
+    };
     const provas = state.provas.map((p) => {
       if (p.id !== r.provaId) return p;
-      const erros = { ...p.erros };
-      for (const [t, n] of Object.entries(r.errosPorTopico)) erros[t] = (erros[t] ?? 0) + n;
       return {
         ...p,
         feitas: r.numero != null && !p.feitas.includes(r.numero) ? [...p.feitas, r.numero].sort((a, b) => a - b) : p.feitas,
         feitasEm: r.numero != null && !p.feitas.includes(r.numero) ? { ...p.feitasEm, [r.numero]: dia } : p.feitasEm,
-        erros,
+        erros: somar(p.erros, r.errosPorTopico),
+        acertosTopico: somar(p.acertosTopico ?? {}, r.acertosPorTopico),
         acertos: p.acertos + r.acertos,
         respondidas: p.respondidas + r.respondidas,
       };
@@ -241,6 +260,7 @@ export const app = {
   setTurma: (turma: TurmaRef) => set({ turma }),
   entrarNaTurma: (turma: TurmaRef) => set({ turma, turmas: state.turmas.some((t) => t.codigo === turma.codigo) ? state.turmas : [...state.turmas, turma] }),
   setNome: (nome: string) => set({ nome }),
+  setFoto: (foto: string | null, fotoMini: string | null) => set({ foto, fotoMini }),
   setSerie: (serie: string) => set({ serie }),
   setLembrete: (lembrete: boolean) => set({ lembrete }),
   setSons: (sons: boolean) => set({ sons }),

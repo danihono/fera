@@ -6,6 +6,8 @@ import type { ModeloIA, PedidoIA } from '../../../src/ia/pipeline';
 
 export const MODELO_CLAUDE = process.env.FERA_MODELO_CLAUDE || 'claude-opus-5';
 
+const IMAGENS = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'] as const;
+
 /** Espaço pro raciocínio além da resposta visível. */
 const FOLGA_RACIOCINIO = 32000;
 
@@ -17,7 +19,10 @@ export function modeloClaude(apiKey: string, modelo = MODELO_CLAUDE): ModeloIA {
       const content: BetaContentBlockParam[] = p.partes.map((x): BetaContentBlockParam => {
         if ('texto' in x) return { type: 'text', text: x.texto, ...(x.cache ? { cache_control: { type: 'ephemeral' } } : {}) };
         if (x.arquivo.mime === 'application/pdf') return { type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: x.arquivo.base64 } };
-        return { type: 'image', source: { type: 'base64', media_type: x.arquivo.mime as 'image/jpeg' | 'image/png' | 'image/webp' | 'image/gif', data: x.arquivo.base64 } };
+        if ((IMAGENS as readonly string[]).includes(x.arquivo.mime))
+          return { type: 'image', source: { type: 'base64', media_type: x.arquivo.mime as (typeof IMAGENS)[number], data: x.arquivo.base64 } };
+        // Áudio, vídeo e HEIC ficam com o Gemini (é ele que lê o material); aqui só avisa.
+        return { type: 'text', text: `[arquivo ${x.arquivo.mime} que este modelo não abre]` };
       });
       // Streaming: resposta longa sem estourar o tempo limite da requisição.
       const stream = client.beta.messages.stream({

@@ -8,11 +8,15 @@ export type MaterialId = 'resumo' | 'explicacao' | 'mapa' | 'slides' | 'grafico'
 export const MATERIAIS: MaterialId[] = ['resumo', 'explicacao', 'mapa', 'slides', 'grafico', 'fluxo', 'imagens'];
 export const ehMaterial = (f: string): f is MaterialId => (MATERIAIS as string[]).includes(f);
 
-/** O que o aluno mandou: fotos (caderno, livro, lousa), PDF ou texto. */
+/**
+ * O que o aluno mandou: fotos (caderno, livro, lousa), PDF, áudio/vídeo de aula (só o Gemini lê)
+ * ou texto — digitado ou extraído de Word, slides, planilha, página web, zip… (src/lib/arquivos.ts).
+ */
 export type Anexo =
   | { tipo: 'foto'; mime: string; base64: string; nome: string }
   | { tipo: 'pdf'; mime: 'application/pdf'; base64: string; nome: string }
-  | { tipo: 'texto'; texto: string };
+  | { tipo: 'midia'; mime: string; base64: string; nome: string }
+  | { tipo: 'texto'; texto: string; nome?: string };
 
 export type PedidoGeracao = {
   materia: string;

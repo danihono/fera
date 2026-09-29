@@ -53,6 +53,8 @@ export const colors = {
   canvas: '#F4EEEC', // fundo atrás do app no web
   dragShadow: 'rgba(42, 31, 31, 0.18)', // sombra da palavra sendo arrastada (Lacuna)
   scrim: 'rgba(42, 31, 31, 0.4)', // fundo escurecido atrás de bottom sheets (text a 40%)
+  photoButton: 'rgba(0, 0, 0, 0.55)', // botão redondo por cima de foto (tirar, trocar)
+  dropOverlay: 'rgba(232, 50, 43, 0.88)', // "Solta aqui" ao arrastar arquivos (red a 88%)
 } as const;
 
 export type ColorToken = keyof typeof colors;

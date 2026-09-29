@@ -67,6 +67,7 @@ function Jogo({ id, missao, premium, provaId }: { id: string; missao: NonNullabl
   const [lives, setLives] = useState(VIDAS);
   const [acertos, setAcertos] = useState(0);
   const [erros, setErros] = useState<Record<string, number>>({});
+  const [certosTopico, setCertosTopico] = useState<Record<string, number>>({});
   const [semVidas, setSemVidas] = useState(false);
   const tentarDeNovo = useRef(false);
   // A questão rola só se não couber na tela (celular pequeno); no tamanho do design ela fica parada.
@@ -77,8 +78,10 @@ function Jogo({ id, missao, premium, provaId }: { id: string; missao: NonNullabl
     const ok = isCorrect(q, answer);
     setResult(ok ? 'correct' : 'wrong');
     vibrar(ok ? 'acerto' : 'erro');
-    if (ok) setAcertos((n) => n + 1);
-    else {
+    if (ok) {
+      setAcertos((n) => n + 1);
+      if (q.topico) setCertosTopico((e) => ({ ...e, [q.topico!]: (e[q.topico!] ?? 0) + 1 }));
+    } else {
       if (q.topico) setErros((e) => ({ ...e, [q.topico!]: (e[q.topico!] ?? 0) + 1 }));
       if (!premium) setLives((n) => Math.max(0, n - 1)); // Fera+: vidas infinitas
     }
@@ -91,6 +94,7 @@ function Jogo({ id, missao, premium, provaId }: { id: string; missao: NonNullabl
     setLives(VIDAS);
     setAcertos(0);
     setErros({});
+    setCertosTopico({});
   };
 
   const continuar = () => {
@@ -106,7 +110,7 @@ function Jogo({ id, missao, premium, provaId }: { id: string; missao: NonNullabl
       return;
     }
     const xp = acertos * XP_POR_ACERTO + XP_BONUS_MISSAO;
-    app.concluirMissao({ provaId, numero: missao.numero, tipo: missao.numero != null ? 'trilha' : (id as 'teste' | 'simulado' | 'revisao'), xp, acertos, respondidas: total, errosPorTopico: erros });
+    app.concluirMissao({ provaId, numero: missao.numero, tipo: missao.numero != null ? 'trilha' : (id as 'teste' | 'simulado' | 'revisao'), xp, acertos, respondidas: total, errosPorTopico: erros, acertosPorTopico: certosTopico });
     vibrar('fim');
     router.replace({
       pathname: '/missao/fim',

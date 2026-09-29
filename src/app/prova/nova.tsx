@@ -16,7 +16,7 @@ import {
 import { InfoSheet } from '@/components/InfoSheet';
 import { Rugi } from '@/components/Rugi';
 import { SquareButton } from '@/components/SquareButton';
-import { escolherPdf, tirarFoto } from '@/data/rascunho';
+import { escolherArquivos, tirarFoto } from '@/data/rascunho';
 import { useApp } from '@/data/store';
 import { shortDate } from '@/lib/dates';
 import { colors, fonts, radius, sizes, solidShadow, space, type } from '@/theme';
@@ -94,7 +94,12 @@ export default function NovaProva() {
             badge="Mais rápido"
             onPress={capturar(tirarFoto)}
           />
-          <OptionCard icon={<FileIcon size={28} color={colors.red} />} title="Enviar PDF" description="Slides, apostila ou resumo" onPress={capturar(escolherPdf)} />
+          <OptionCard
+            icon={<FileIcon size={28} color={colors.red} />}
+            title="Enviar arquivos"
+            description="PDF, Word, slides, áudio, zip…"
+            onPress={capturar(escolherArquivos)}
+          />
           <OptionCard
             icon={<PencilIcon size={28} color={colors.red} />}
             title="Escrever ou colar"

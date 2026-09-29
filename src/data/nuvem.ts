@@ -15,40 +15,66 @@ import { app, lerEstado, nomeDe, type AppState, type TurmaRef } from './store';
 const semDatas = <T>(v: T): T => JSON.parse(JSON.stringify(v));
 
 let pararSync: (() => void) | null = null;
+let uidSincronizado: string | null = null;
 
-/** Login anônimo + traz o estado da nuvem se for mais novo + passa a espelhar as mudanças. */
-export async function iniciarNuvem() {
+/**
+ * Login (anônimo, se não tiver conta) + traz o estado da nuvem + passa a espelhar as mudanças.
+ * trocouDeConta: entrou numa conta de e-mail — se ela já tem progresso na nuvem, ele manda;
+ * se está vazia, herda o que está no aparelho.
+ */
+export async function iniciarNuvem(opts: { trocouDeConta?: boolean } = {}) {
   const s = firebase();
-  if (!s || pararSync) return;
+  if (!s) return;
   const user = await entrar();
-  if (!user) return;
+  if (!user || (uidSincronizado === user.uid && !opts.trocouDeConta)) return;
+  pararSincronia();
+  uidSincronizado = user.uid;
   const ref = doc(s.db, 'usuarios', user.uid);
   try {
     const snap = await getDoc(ref);
     const nuvem = snap.exists() ? (snap.data().estado as Partial<AppState> | undefined) : undefined;
-    if (nuvem && (nuvem.atualizadoEm ?? 0) > app.get().atualizadoEm) app.substituir(lerEstado(nuvem));
+    if (nuvem && (opts.trocouDeConta || (nuvem.atualizadoEm ?? 0) > app.get().atualizadoEm)) app.substituir(lerEstado(nuvem));
   } catch {
     // Sem rede: segue com o que tem no aparelho.
   }
 
   let timer: ReturnType<typeof setTimeout> | null = null;
-  let ultimoXp = -1;
+  let ultimoMembro = '';
   const enviar = () => {
     const estado = app.get();
     setDoc(ref, { estado: semDatas(estado), atualizadoEm: serverTimestamp() }).catch(() => {});
-    if (estado.turma && estado.xp !== ultimoXp) {
-      ultimoXp = estado.xp;
+    // A linha do ranking só muda quando muda XP, nome ou foto.
+    const assinatura = `${estado.turma?.codigo}|${estado.xp}|${nomeDe(estado)}|${estado.fotoMini?.length ?? 0}`;
+    if (estado.turma && assinatura !== ultimoMembro) {
+      ultimoMembro = assinatura;
       setDoc(doc(s.db, 'turmas', estado.turma.codigo, 'membros', user.uid), membro(estado)).catch(() => {});
     }
   };
   enviar();
-  pararSync = app.subscribe(() => {
+  const parar = app.subscribe(() => {
     if (timer) clearTimeout(timer);
     timer = setTimeout(enviar, 1500);
   });
+  pararSync = () => {
+    parar();
+    if (timer) clearTimeout(timer);
+  };
 }
 
-const membro = (s: AppState) => ({ nome: nomeDe(s), inicial: nomeDe(s).charAt(0).toUpperCase(), xp: s.xp, atualizadoEm: serverTimestamp() });
+/** Para de espelhar (antes de sair ou trocar de conta). */
+export function pararSincronia() {
+  pararSync?.();
+  pararSync = null;
+  uidSincronizado = null;
+}
+
+const membro = (s: AppState) => ({
+  nome: nomeDe(s),
+  inicial: nomeDe(s).charAt(0).toUpperCase(),
+  xp: s.xp,
+  ...(s.fotoMini ? { foto: s.fotoMini } : {}),
+  atualizadoEm: serverTimestamp(),
+});
 
 export async function salvarConteudoNuvem(provaId: string, prova: ProvaGerada) {
   const s = firebase();
@@ -112,7 +138,7 @@ export async function entrarNaTurmaNuvem(codigo: string): Promise<TurmaRef | nul
   return { codigo, nome: String(snap.data().nome ?? codigo) };
 }
 
-export type Membro = { uid: string; nome: string; inicial: string; xp: number };
+export type Membro = { uid: string; nome: string; inicial: string; xp: number; foto: string | null };
 
 /** Ranking da turma ao vivo. */
 export function ouvirRanking(codigo: string, cb: (m: Membro[]) => void): Unsubscribe {
@@ -120,17 +146,21 @@ export function ouvirRanking(codigo: string, cb: (m: Membro[]) => void): Unsubsc
   if (!s) return () => {};
   return onSnapshot(
     collection(s.db, 'turmas', codigo, 'membros'),
-    (snap) => cb(snap.docs.map((d) => ({ uid: d.id, nome: String(d.data().nome ?? ''), inicial: String(d.data().inicial ?? '?'), xp: Number(d.data().xp ?? 0) })).sort((a, b) => b.xp - a.xp)),
+    (snap) =>
+      cb(
+        snap.docs
+          .map((d) => ({ uid: d.id, nome: String(d.data().nome ?? ''), inicial: String(d.data().inicial ?? '?'), xp: Number(d.data().xp ?? 0), foto: (d.data().foto as string) ?? null }))
+          .sort((a, b) => b.xp - a.xp),
+      ),
     () => {},
   );
 }
 
-/** Sair da conta: apaga os dados na nuvem e o usuário anônimo. */
+/** Apaga os dados da pessoa na nuvem e o usuário (conta de e-mail precisa ter reautenticado antes). */
 export async function apagarConta() {
   const s = firebase();
   const user = usuarioAtual();
-  pararSync?.();
-  pararSync = null;
+  pararSincronia();
   if (!s || !user) return;
   const estado = app.get();
   try {

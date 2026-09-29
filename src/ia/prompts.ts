@@ -67,11 +67,11 @@ export const guiaDaMateria = (materia: string) => {
 
 /** Primeira etapa: o pedido que acompanha as fotos/PDF/texto. */
 export function pedidoDoPlano(p: PedidoGeracao) {
-  return `Leia com atenção o material que o aluno mandou (fotos do caderno, livro ou lousa, PDF ou texto) e monte o plano de estudo.
+  return `Leia com atenção todo o material que o aluno mandou (fotos do caderno, livro ou lousa, PDFs, slides, documentos, planilhas, páginas web, texto, áudio ou vídeo de aula) e monte o plano de estudo. Se vierem vários arquivos, junte tudo num material só, sem repetir o que aparece em mais de um; ignore o que claramente não é da matéria (propaganda, capa, índice).
 
 Aluno: ${p.serie}. Matéria: ${p.materia}.${p.topico ? ` Ele disse que o tópico é: "${p.topico}".` : ''} A prova é daqui a ${p.diasAte} ${p.diasAte === 1 ? 'dia' : 'dias'}.
 
-1. Transcreva TODO o conteúdo em conteudoBase: letra à mão, setas e esquemas viram texto organizado; fórmulas em notação simples. Não resuma aqui: é a base de todo o resto.
+1. Transcreva TODO o conteúdo em conteudoBase: letra à mão, setas e esquemas viram texto organizado; fórmulas em notação simples; em áudio ou vídeo, o que o professor explica e escreve no quadro. Não resuma aqui: é a base de todo o resto.
 2. Descubra o tópico exato e divida em 3 a 6 tópicos na ordem em que se aprende.
 3. Para cada tópico: a ideia central, como cai em prova e a pegadinha mais comum.
 4. Liste em avisos o que atrapalhou a leitura ou os erros que você corrigiu.

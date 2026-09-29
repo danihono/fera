@@ -35,6 +35,8 @@ export function firebase(): Servicos | null {
   const jaExiste = getApps().length > 0;
   const app = jaExiste ? getApp() : initializeApp(config);
   const auth = iniciarAuth(app);
+  // E-mails de verificação e de nova senha em português.
+  auth.languageCode = 'pt-BR';
   // Long polling: mais estável em redes de celular e no Expo Go.
   const db = initializeFirestore(app, { experimentalAutoDetectLongPolling: true, ignoreUndefinedProperties: true });
   const functions = getFunctions(app, REGIAO);
